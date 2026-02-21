@@ -1,0 +1,70 @@
+"use client";
+
+import { useState } from "react";
+import { CheckCheck } from "lucide-react";
+import { Card } from "../ui/Card";
+import { Title } from "../ui/Title";
+import { useActions } from "@/context/ActionContext";
+import { formatDate } from "@/lib/utils";
+import { ConfirmModal } from "../ui/ConfirmModal";
+import { MAX_ITEMS_PER_PAGE } from "@/constants";
+import { Capture } from "../ui/Capture";
+import { EmptyState } from "../ui/EmptyState";
+
+export function Done() {
+  const [showAll, setShowAll] = useState(false);
+  const { actions, loading, deleteAction } = useActions();
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const dones = actions.filter((action) => action.status === "done");
+  const displayedActions = showAll ? dones : dones.slice(0, MAX_ITEMS_PER_PAGE);
+
+  if (loading)
+    return <div className="text-zinc-500 text-center py-10">Loading...</div>;
+
+  const confirmDelete = async () => {
+    if (itemToDelete) {
+      await deleteAction(itemToDelete);
+      setItemToDelete(null);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <Capture />
+      <Title title="Done" icon={CheckCheck} />
+
+      {displayedActions.length === 0 && <EmptyState />}
+
+      {displayedActions.map((action) => (
+        <Card
+          key={action.id}
+          item={{
+            urgent: action.urgent,
+            title: action.title,
+            onRemove: () => setItemToDelete(action.id),
+            date: formatDate(action.created_at ?? ""),
+            text: action.text,
+          }}
+        />
+      ))}
+
+      {!showAll && dones.length > MAX_ITEMS_PER_PAGE && (
+        <button
+          onClick={() => setShowAll(true)}
+          className="w-full cursor-pointer py-4 border-2 border-dashed border-zinc-800 rounded-xl text-zinc-500 hover:text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900/20 transition-all font-medium text-sm"
+        >
+          + View all done ({dones.length})
+        </button>
+      )}
+
+      <ConfirmModal
+        isOpen={!!itemToDelete}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Action"
+        message="Are you sure? This action cannot be undone."
+        variant="danger"
+      />
+    </div>
+  );
+}
