@@ -21,6 +21,7 @@ export function Capture() {
     setShowSuccess(false);
     if (e.key === "Enter" && isValid) {
       await addCapture(value);
+      setValue("");
       setShowSuccess(true);
     }
   };

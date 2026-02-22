@@ -167,7 +167,7 @@ export function ActionProvider({ children }: { children: React.ReactNode }) {
     };
 
     load();
-  }, [user]);
+  }, [user?.id]);
 
   return (
     <ActionContext.Provider

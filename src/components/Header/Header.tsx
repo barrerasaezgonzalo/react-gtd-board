@@ -1,6 +1,6 @@
 import { HeaderProps } from "@/types";
 import { useActions } from "@/context/ActionContext";
-import { Zap, LogOut, Menu } from "lucide-react";
+import { Zap, LogOut, Menu, Calendar } from "lucide-react";
 import { useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
@@ -68,6 +68,13 @@ export function Header({ setActiveView, openSidebar }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-4">
+          <button
+            onClick={() => setActiveView("calendar")}
+            className="flex cursor-pointer items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition shadow-lg shadow-blue-500/10"
+          >
+            {" "}
+            <Calendar size={20} />
+          </button>
           <button
             onClick={() => setActiveView("backLog")}
             className="flex cursor-pointer items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition shadow-lg shadow-blue-500/10"

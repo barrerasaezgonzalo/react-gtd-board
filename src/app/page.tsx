@@ -9,6 +9,7 @@ import { BackLog } from "../components/BackLog/BackLog";
 import { Waiting } from "../components/Waiting/Waiting";
 import { Done } from "../components/Done/Done";
 import { useAuth } from "@/context/AuthContext";
+import { Calendar } from "@/components/Calendar/Calendar";
 
 export default function Home() {
   const [activeView, setActiveView] = useState("nextActions");
@@ -61,6 +62,7 @@ export default function Home() {
           {activeView === "backLog" && <BackLog />}
           {activeView === "waiting" && <Waiting />}
           {activeView === "done" && <Done />}
+          {activeView === "calendar" && <Calendar />}
         </main>
       </div>
     </div>
