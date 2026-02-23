@@ -10,6 +10,7 @@ import { ConfirmModal } from "../ui/ConfirmModal";
 import { MAX_ITEMS_PER_PAGE } from "@/constants";
 import { Capture } from "../ui/Capture";
 import { EmptyState } from "../ui/EmptyState";
+import { Loading } from "../ui/Loading";
 
 export function Done() {
   const [showAll, setShowAll] = useState(false);
@@ -18,8 +19,7 @@ export function Done() {
   const dones = actions.filter((action) => action.status === "done");
   const displayedActions = showAll ? dones : dones.slice(0, MAX_ITEMS_PER_PAGE);
 
-  if (loading)
-    return <div className="text-zinc-500 text-center py-10">Loading...</div>;
+  if (loading) return <Loading />;
 
   const confirmDelete = async () => {
     if (itemToDelete) {

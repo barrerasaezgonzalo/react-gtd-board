@@ -12,17 +12,23 @@ import {
   isToday,
   parseISO,
 } from "date-fns";
-import { GtdAction } from "@/types";
+import { Action } from "@/types";
 import { useActions } from "@/context/ActionContext";
+import { getDaysRemaining } from "@/lib/utils";
+import { Loading } from "../ui/Loading";
 
 export function Calendar() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const { actions } = useActions();
+  const { actions, loading } = useActions();
   const [showAll, setShowAll] = useState(false);
-  const tasksByDay = useMemo(() => {
-    const map = new Map<string, GtdAction[]>();
 
-    actions.forEach((task) => {
+  const nextActions = actions.filter(
+    (action) => action.status === "nextActions" || action.status === "waiting",
+  );
+  const tasksByDay = useMemo(() => {
+    const map = new Map<string, Action[]>();
+
+    nextActions.forEach((task) => {
       if (!task.due_date) return;
       const key = format(
         parseISO(task.due_date.substring(0, 10)),
@@ -33,7 +39,7 @@ export function Calendar() {
     });
 
     return map;
-  }, [actions]);
+  }, [nextActions]);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(monthStart);
@@ -48,6 +54,7 @@ export function Calendar() {
     day = addDays(day, 1);
   }
 
+  if (loading) return <Loading />;
   return (
     <div className="w-full max-w-4xl mx-auto p-6 bg-zinc-950 text-zinc-100 rounded-2xl shadow-xl border border-zinc-800">
       <div className="flex items-center justify-between mb-6">
@@ -78,7 +85,7 @@ export function Calendar() {
         ))}
       </div>
 
-      <div className="grid grid-cols-7 border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="grid grid-cols-7 border border-zinc-800 rounded-xl">
         {days.map((day, index) => {
           const dayKey = format(day, "yyyy-MM-dd");
           const dayTasks = tasksByDay.get(dayKey) || [];
@@ -105,29 +112,33 @@ export function Calendar() {
               </div>
 
               <div className="flex flex-col gap-1 overflow-visible">
-                {displayedTask.map((task) => (
-                  <div className="relative group" key={task.id}>
-                    <div
-                      className="
-                        bg-blue-500/20 
-                        text-blue-300 
+                {displayedTask.map((task) => {
+                  const late = getDaysRemaining(task?.due_date).includes(
+                    "Vencida",
+                  );
+                  return (
+                    <div className="relative group" key={task.id}>
+                      <div
+                        className={`
+                        ${late ? "bg-red-500/20 " : "bg-blue-500/20 "}
+                        text-white
                         text-xs 
                         px-1 
                         py-1 
                         rounded-md 
                         truncate
                         h-6
-                        "
-                    >
-                      {task.title}
-                    </div>
+                      `}
+                      >
+                        {task.title}
+                      </div>
 
-                    <div
-                      className="
+                      <div
+                        className={`
                         absolute left-0 top-0
                         hidden group-hover:block
                         z-50
-                        bg-blue-600
+                        ${late ? "bg-red-900 " : "bg-blue-900 "}
                         text-white
                         text-xs
                         px-3 py-2
@@ -138,12 +149,13 @@ export function Calendar() {
                         break-words
                         scale-95 group-hover:scale-100
                         transition-all duration-150
-                        "
-                    >
-                      {task.title}
+                        `}
+                      >
+                        {task.title}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 {dayTasks.length > 3 && (
                   <div

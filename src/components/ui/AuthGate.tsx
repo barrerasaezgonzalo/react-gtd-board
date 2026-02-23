@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 interface AuthGateProps {
   onLogin: () => Promise<void> | void;
@@ -9,7 +10,13 @@ export function AuthGate({ onLogin }: AuthGateProps) {
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-6">
       <div className="max-w-md w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-xl text-center">
         {/* Title */}
-        <h1 className="text-3xl font-bold text-zinc-100 mb-3">GTP Board</h1>
+        <Image
+          src="/logo.jpg"
+          alt="Logo"
+          width={350}
+          height={350}
+          className="mx-auto p-2 w-[300px]"
+        />
 
         {/* Description */}
         <p className="text-sm text-zinc-400 mb-6 leading-relaxed">

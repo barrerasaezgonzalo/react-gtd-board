@@ -10,6 +10,7 @@ import { Waiting } from "../components/Waiting/Waiting";
 import { Done } from "../components/Done/Done";
 import { useAuth } from "@/context/AuthContext";
 import { Calendar } from "@/components/Calendar/Calendar";
+import { Notes } from "@/components/Notes/Notes";
 
 export default function Home() {
   const [activeView, setActiveView] = useState("nextActions");
@@ -32,10 +33,10 @@ export default function Home() {
             onClick={() => setSidebarOpen(false)}
           />
 
-          <div className="fixed inset-y-0 left-0 w-64 z-50 md:hidden bg-zinc-900">
+          <div className="fixed inset-y-0 left-0 w-80 z-50 md:hidden bg-zinc-900">
             <button
               onClick={() => setSidebarOpen(false)}
-              className="absolute top-4 right-4 text-zinc-400 hover:text-white transition"
+              className="absolute top-2 right-2 cursor-pointer text-zinc-400 hover:text-white transition"
             >
               ✕
             </button>
@@ -52,10 +53,7 @@ export default function Home() {
       )}
 
       <div className="flex-1 flex flex-col">
-        <Header
-          setActiveView={setActiveView}
-          openSidebar={() => setSidebarOpen(true)}
-        />
+        <Header openSidebar={() => setSidebarOpen(true)} />
 
         <main className="flex-1 p-4 md:p-8 overflow-auto">
           {activeView === "nextActions" && <NextActions />}
@@ -63,6 +61,7 @@ export default function Home() {
           {activeView === "waiting" && <Waiting />}
           {activeView === "done" && <Done />}
           {activeView === "calendar" && <Calendar />}
+          {activeView === "notes" && <Notes />}
         </main>
       </div>
     </div>

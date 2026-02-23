@@ -9,29 +9,20 @@ import { formatDate } from "@/lib/utils";
 import { EditModal } from "../ui/EditModal";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import { MAX_ITEMS_PER_PAGE } from "@/constants";
-import { GtdAction, UpdateActionInput } from "@/types";
+import { Action } from "@/types";
 import { Capture } from "../ui/Capture";
 import { EmptyState } from "../ui/EmptyState";
+import { Loading } from "../ui/Loading";
 
 export function BackLog() {
   const [showAll, setShowAll] = useState(false);
-  const [editingItem, setEditingItem] = useState<GtdAction | null>(null);
-  const { actions, loading, saving, updateAction, deleteAction } = useActions();
+  const [editingItem, setEditingItem] = useState<Action | null>(null);
+  const { actions, loading, saving, deleteAction } = useActions();
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const backLogs = actions.filter((action) => action.status === "backLog");
   const displayedActions = showAll
     ? backLogs
     : backLogs.slice(0, MAX_ITEMS_PER_PAGE);
-
-  if (loading)
-    return <div className="text-zinc-500 text-center py-10">Loading...</div>;
-
-  const handleSave = async (formData: UpdateActionInput) => {
-    if (editingItem) {
-      await updateAction(editingItem.id, formData);
-      setEditingItem(null);
-    }
-  };
 
   const confirmDelete = async () => {
     if (itemToDelete) {
@@ -40,6 +31,7 @@ export function BackLog() {
     }
   };
 
+  if (loading) return <Loading />;
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Capture />
@@ -54,7 +46,7 @@ export function BackLog() {
             title: action.title,
             onRemove: () => setItemToDelete(action.id),
             date: formatDate(action.created_at ?? ""),
-            cta: "Mark as Action",
+            cta: "Make Action",
             ctaAction: () =>
               setEditingItem({ ...action, status: "nextActions" }),
           }}
@@ -65,7 +57,6 @@ export function BackLog() {
         <EditModal
           item={editingItem}
           onClose={() => setEditingItem(null)}
-          onSave={handleSave}
           saving={saving}
         />
       )}

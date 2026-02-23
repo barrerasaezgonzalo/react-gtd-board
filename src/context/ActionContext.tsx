@@ -1,173 +1,194 @@
 "use client";
-import React, { createContext, useContext, useEffect, useState } from "react";
+
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { supabase } from "@/lib/supabase";
-import {
-  ActionContextType,
-  GtdAction,
-  UpdateActionInput,
-  UpdateActionWithFileParams,
-} from "@/types";
+import { ActionContextType, Action, UpdateActionParams } from "@/types";
 import { useAuth } from "./AuthContext";
 
 const ActionContext = createContext<ActionContextType | undefined>(undefined);
 
 export function ActionProvider({ children }: { children: React.ReactNode }) {
-  const [actions, setActions] = useState<GtdAction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const { user } = useAuth();
 
-  const fetchActions = async () => {
-    if (!user) {
-      setActions([]);
-      setLoading(false);
-      return;
-    }
+  const [actions, setActions] = useState<Action[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-    setLoading(true);
-
+  const getFilePath = async (id: string) => {
     const { data, error } = await supabase
-      .from("gtd_actions")
-      .select("*")
-      .order("due_date", { ascending: true })
-      .order("created_at", { ascending: false });
-
-    if (!error) {
-      setActions(data ?? []);
-    }
-
-    setLoading(false);
-  };
-
-  const addCapture = async (value: string) => {
-    if (!user) return;
-    const { data, error } = await supabase
-      .from("gtd_actions")
-      .insert([
-        {
-          title: value.trim(),
-          status: "backLog",
-          urgent: false,
-          user_id: user?.id,
-        },
-      ])
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error capturing action:", error);
-      return;
-    }
-
-    setActions((prev) => [data, ...prev]);
-  };
-
-  const updateAction = async (id: string, updates: UpdateActionInput) => {
-    if (!user) return;
-    setSaving(true);
-    const { error } = await supabase
-      .from("gtd_actions")
-      .update(updates)
-      .eq("id", id);
-
-    setSaving(false);
-
-    if (error) {
-      console.error("Error updating action:", error);
-      return;
-    }
-
-    await fetchActions();
-  };
-
-  const deleteAction = async (id: string) => {
-    if (!user) return;
-    setSaving(true);
-    const { data: existing, error: fetchError } = await supabase
       .from("gtd_actions")
       .select("file_path")
       .eq("id", id)
       .single();
 
-    if (fetchError) {
-      console.error("Error fetching action before delete:", fetchError);
-      return;
-    }
-
-    if (existing?.file_path) {
-      const { error: storageError } = await supabase.storage
-        .from("gtd")
-        .remove([existing.file_path]);
-
-      if (storageError) {
-        console.error("Error deleting file from storage:", storageError);
-      }
-    }
-
-    const { error } = await supabase.from("gtd_actions").delete().eq("id", id);
-
-    if (error) {
-      console.error("Error deleting action:", error);
-      return;
-    }
-
-    setActions((prev) => prev.filter((action) => action.id !== id));
-    setSaving(false);
+    if (error) throw error;
+    return data?.file_path ?? null;
   };
 
-  const updateActionWithFile = async ({
+  const removeFileFromStorage = async (path: string) => {
+    const { error } = await supabase.storage.from("gtd").remove([path]);
+
+    if (error) throw error;
+  };
+
+  const clearFilePath = async (id: string) => {
+    const { error } = await supabase
+      .from("gtd_actions")
+      .update({ file_path: null })
+      .eq("id", id);
+
+    if (error) throw error;
+  };
+
+  const deleteOldFile = async (id: string) => {
+    const existingPath = await getFilePath(id);
+    if (!existingPath) return;
+
+    await removeFileFromStorage(existingPath);
+    await clearFilePath(id);
+  };
+
+  const userId = user?.id;
+  const fetchActions = useCallback(async () => {
+    if (!userId) {
+      setActions([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const { data, error } = await supabase
+        .from("gtd_actions")
+        .select("*")
+        .eq("user_id", userId)
+        .order("urgent", { ascending: false })
+        .order("due_date", { ascending: true });
+
+      if (error) throw error;
+
+      setActions(data ?? []);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  const addCapture = async (capture: string) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("gtd_actions")
+        .insert([
+          {
+            title: capture.trim(),
+            status: "backLog",
+            urgent: false,
+            user_id: userId,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setActions((prev) => [data, ...prev]);
+    } catch (err) {
+      console.error("Insert error:", err);
+    }
+  };
+
+  const updateAction = async ({
     id,
     updates,
     file,
-    previousFilePath,
-  }: UpdateActionWithFileParams) => {
+    removeFile,
+  }: UpdateActionParams) => {
+    if (!user) return;
+
     setSaving(true);
 
-    let filePath = previousFilePath ?? null;
+    try {
+      let newFilePath: string | undefined;
 
-    if (file) {
-      const { data, error } = await supabase.storage
-        .from("gtd")
-        .upload(`actions/${crypto.randomUUID()}-${file.name}`, file);
+      if (file) {
+        await deleteOldFile(id);
 
-      if (error) {
-        console.error("Upload error:", error);
-        setSaving(false);
-        return;
+        const { data, error } = await supabase.storage
+          .from("gtd")
+          .upload(`actions/${crypto.randomUUID()}-${file.name}`, file);
+
+        if (error) throw error;
+
+        newFilePath = data.path;
       }
 
-      filePath = data.path;
-
-      if (previousFilePath) {
-        await supabase.storage.from("gtd").remove([previousFilePath]);
+      if (removeFile && !file) {
+        await deleteOldFile(id);
+        newFilePath = "";
       }
-    }
 
-    const { error } = await supabase
-      .from("gtd_actions")
-      .update({
+      const updateData = {
         ...updates,
-        file_path: filePath,
-      })
-      .eq("id", id);
+        ...(newFilePath !== undefined ? { file_path: newFilePath } : {}),
+      };
 
-    setSaving(false);
+      const { error } = await supabase
+        .from("gtd_actions")
+        .update(updateData)
+        .eq("user_id", userId)
+        .eq("id", id);
 
-    if (error) {
-      console.error("Update error:", error);
-      return;
+      if (error) throw error;
+
+      setActions((prev) =>
+        prev.map((action) =>
+          action.id === id ? { ...action, ...updateData } : action,
+        ),
+      );
+    } catch (err) {
+      console.error("Update error:", err);
+    } finally {
+      setSaving(false);
     }
+  };
 
-    await fetchActions();
+  const deleteAction = async (id: string) => {
+    if (!user) return;
+
+    setSaving(true);
+
+    try {
+      await deleteOldFile(id);
+
+      const { error } = await supabase
+        .from("gtd_actions")
+        .delete()
+        .eq("user_id", userId)
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setActions((prev) => prev.filter((action) => action.id !== id));
+    } catch (err) {
+      console.error("Delete error:", err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   useEffect(() => {
-    const load = async () => {
-      await fetchActions();
-    };
-
-    load();
-  }, [user?.id]);
+    fetchActions();
+  }, [fetchActions]);
 
   return (
     <ActionContext.Provider
@@ -176,10 +197,9 @@ export function ActionProvider({ children }: { children: React.ReactNode }) {
         loading,
         saving,
         refreshActions: fetchActions,
-        updateAction,
         deleteAction,
         addCapture,
-        updateActionWithFile,
+        updateAction,
       }}
     >
       {children}

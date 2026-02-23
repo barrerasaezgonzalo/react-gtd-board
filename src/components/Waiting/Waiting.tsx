@@ -9,30 +9,21 @@ import { formatDate, getDaysRemaining } from "@/lib/utils";
 import { EditModal } from "../ui/EditModal";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import { MAX_ITEMS_PER_PAGE } from "@/constants";
-import { GtdAction, UpdateActionInput } from "@/types";
+import { Action } from "@/types";
 import { Capture } from "../ui/Capture";
 import { EmptyState } from "../ui/EmptyState";
+import { Loading } from "../ui/Loading";
 
 export function Waiting() {
   const [showAll, setShowAll] = useState(false);
-  const [editingItem, setEditingItem] = useState<GtdAction | null>(null);
-  const { actions, loading, saving, updateAction, deleteAction } = useActions();
+  const [editingItem, setEditingItem] = useState<Action | null>(null);
+  const { actions, loading, saving, deleteAction, updateAction } = useActions();
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [itemMakeAction, setItemMakeAction] = useState<string | null>(null);
   const waitings = actions.filter((action) => action.status === "waiting");
   const displayedActions = showAll
     ? waitings
     : waitings.slice(0, MAX_ITEMS_PER_PAGE);
-
-  if (loading)
-    return <div className="text-zinc-500 text-center py-10">Loading...</div>;
-
-  const handleSave = async (formData: UpdateActionInput) => {
-    if (editingItem) {
-      await updateAction(editingItem.id, formData);
-      setEditingItem(null);
-    }
-  };
 
   const confirmDelete = async () => {
     if (itemToDelete) {
@@ -43,11 +34,15 @@ export function Waiting() {
 
   const handleMarkAsAction = async () => {
     if (itemMakeAction) {
-      await updateAction(itemMakeAction, { status: "nextActions" });
+      await updateAction({
+        id: itemMakeAction,
+        updates: { status: "nextActions" },
+      });
       setItemMakeAction(null);
     }
   };
 
+  if (loading) return <Loading />;
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Capture />
@@ -76,7 +71,6 @@ export function Waiting() {
         <EditModal
           item={editingItem}
           onClose={() => setEditingItem(null)}
-          onSave={handleSave}
           saving={saving}
         />
       )}

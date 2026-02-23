@@ -1,6 +1,14 @@
-// models/gtd-action.ts
+export interface ActionContextType {
+  actions: Action[];
+  loading: boolean;
+  saving: boolean;
+  refreshActions: () => Promise<void>;
+  deleteAction: (id: string) => Promise<void>;
+  addCapture: (value: string) => Promise<void>;
+  updateAction: (params: UpdateActionParams) => Promise<void>;
+}
 
-export interface GtdAction {
+export interface Action {
   id: string;
   title: string;
   due_date: string;
@@ -11,20 +19,18 @@ export interface GtdAction {
   created_at?: string;
 }
 
-export type UpdateActionInput = Partial<{
-  title: string;
-  due_date: string;
-  status: "nextActions" | "backLog" | "waiting" | "done";
-  text: string;
-  urgent: boolean;
-}>;
+export type ActionParams = Partial<Omit<Action, "id" | "created_at">>;
 
-export type CreateActionInput = Omit<GtdAction, "id" | "created_at">;
+export interface UpdateActionParams {
+  id: string;
+  updates: ActionParams;
+  file?: File | null;
+  removeFile?: boolean;
+}
 
 export interface EditModalProps {
-  item: GtdAction;
+  item: Action;
   onClose: () => void;
-  onSave: (updates: UpdateActionInput) => void | Promise<void>;
   saving: boolean;
 }
 
@@ -50,7 +56,6 @@ export interface CardViewModel {
 }
 
 export interface HeaderProps {
-  setActiveView: (view: string) => void;
   openSidebar?: () => void;
 }
 
@@ -70,25 +75,15 @@ export interface ConfirmModalProps {
   variant?: "danger" | "success";
 }
 
-export interface ActionContextType {
-  actions: GtdAction[];
-  loading: boolean;
-  saving: boolean;
-
-  refreshActions: () => Promise<void>;
-
-  updateAction: (id: string, updates: UpdateActionInput) => Promise<void>;
-
-  deleteAction: (id: string) => Promise<void>;
-
-  addCapture: (value: string) => Promise<void>;
-
-  updateActionWithFile: (params: UpdateActionWithFileParams) => Promise<void>;
-}
-
-export interface UpdateActionWithFileParams {
+export type Note = {
   id: string;
-  updates: UpdateActionInput;
-  file?: File | null;
-  previousFilePath?: string | null;
-}
+  content: string;
+  pinned: boolean;
+};
+
+export type Rect = {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+};

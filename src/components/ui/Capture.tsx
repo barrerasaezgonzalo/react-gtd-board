@@ -46,7 +46,7 @@ export function Capture() {
       />
 
       {value.length > 0 && !isValid && (
-        <span className="absolute -bottom-6 left-2 text-[10px] text-zinc-500 font-medium uppercase tracking-wider">
+        <span className="absolute -bottom-6 left-2 text-[10px] text-red-500 font-medium uppercase tracking-wider">
           At least 5 characters required
         </span>
       )}

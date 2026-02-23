@@ -11,11 +11,12 @@ import { EditModal } from "../ui/EditModal";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import { MAX_ITEMS_PER_PAGE } from "@/constants";
 import { EmptyState } from "../ui/EmptyState";
-import { GtdAction, UpdateActionInput } from "@/types";
+import { Action } from "@/types";
+import { Loading } from "../ui/Loading";
 
 export function NextActions() {
   const [showAll, setShowAll] = useState(false);
-  const [editingItem, setEditingItem] = useState<GtdAction | null>(null);
+  const [editingItem, setEditingItem] = useState<Action | null>(null);
   const { actions, loading, saving, updateAction, deleteAction } = useActions();
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [itemToComplete, setItemToComplete] = useState<string | null>(null);
@@ -26,16 +27,6 @@ export function NextActions() {
     ? nextActions
     : nextActions.slice(0, MAX_ITEMS_PER_PAGE);
 
-  if (loading)
-    return <div className="text-zinc-500 text-center py-10">Loading...</div>;
-
-  const handleSave = async (formData: UpdateActionInput) => {
-    if (editingItem) {
-      await updateAction(editingItem.id, formData);
-      setEditingItem(null);
-    }
-  };
-
   const confirmDelete = async () => {
     if (itemToDelete) {
       await deleteAction(itemToDelete);
@@ -45,11 +36,12 @@ export function NextActions() {
 
   const handleMarkAsDone = async () => {
     if (itemToComplete) {
-      await updateAction(itemToComplete, { status: "done" });
+      await updateAction({ id: itemToComplete, updates: { status: "done" } });
       setItemToComplete(null);
     }
   };
 
+  if (loading) return <Loading />;
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Capture />
@@ -78,7 +70,6 @@ export function NextActions() {
         <EditModal
           item={editingItem}
           onClose={() => setEditingItem(null)}
-          onSave={handleSave}
           saving={saving}
         />
       )}

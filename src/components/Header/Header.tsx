@@ -1,12 +1,12 @@
 import { HeaderProps } from "@/types";
 import { useActions } from "@/context/ActionContext";
-import { Zap, LogOut, Menu, Calendar } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import { useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
-export function Header({ setActiveView, openSidebar }: HeaderProps) {
+export function Header({ openSidebar }: HeaderProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const { actions } = useActions();
   const getCount = (status: string) => {
@@ -67,21 +67,7 @@ export function Header({ setActiveView, openSidebar }: HeaderProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setActiveView("calendar")}
-            className="flex cursor-pointer items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition shadow-lg shadow-blue-500/10"
-          >
-            {" "}
-            <Calendar size={20} />
-          </button>
-          <button
-            onClick={() => setActiveView("backLog")}
-            className="flex cursor-pointer items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition shadow-lg shadow-blue-500/10"
-          >
-            <Zap size={16} fill="currentColor" />
-            Process Backlog
-          </button>
+        <div className="flex items-center gap-2">
           <div className="h-8 w-px bg-zinc-800 mx-2" />
           <button onClick={() => setConfirmOpen(true)}>
             <LogOut

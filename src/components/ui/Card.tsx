@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { SquarePen, Trash, Calendar, Loader, ChevronDown } from "lucide-react";
+import {
+  SquarePen,
+  Trash,
+  Calendar,
+  Loader,
+  ChevronDown,
+  ShieldAlert,
+} from "lucide-react";
 import { ActionCardProps } from "@/types";
 
 export function Card({ item }: ActionCardProps) {
@@ -11,23 +18,24 @@ export function Card({ item }: ActionCardProps) {
     : (item.text ?? "").length > 100
       ? `${item.text?.substring(0, 100)}...`
       : item.text;
-
+  const late = item?.dueDate?.includes("Vencida");
   return (
-    <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-xl p-5 shadow-sm hover:border-zinc-700 hover:bg-zinc-900/60 transition-all duration-300 group relative overflow-hidden">
-      <div
-        className={`absolute left-0 top-0 bottom-0 w-1 ${!item.urgent ? "bg-blue-500" : "bg-red-500"} opacity-40`}
-      />
-
+    <div
+      className={`
+     rounded-xl p-5 shadow-sm transition-all duration-300 group relative overflow-hidden
+    ${late ? "bg-red-900/15 border border-red-500/40" : "bg-blue-900/15 border border-blue-500/40"}
+    `}
+    >
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <p className="font-semibold flex items-center gap-3 text-zinc-100">
+          <p className="font-semibold flex items-center text-lg gap-3 text-zinc-100 border-b border-b-zinc-500">
             {item.title}
           </p>
           <div className="flex items-center gap-3">
             {item.onEdit && (
               <SquarePen
                 size={16}
-                className="text-zinc-500 hover:text-indigo-400 cursor-pointer"
+                className="text-white hover:text-blue-400 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
                   item.onEdit?.();
@@ -37,7 +45,7 @@ export function Card({ item }: ActionCardProps) {
             {item.onRemove && (
               <Trash
                 size={16}
-                className="text-zinc-500 hover:text-rose-500 cursor-pointer"
+                className="text-white hover:text-rose-500 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
                   item.onRemove?.();
@@ -47,12 +55,17 @@ export function Card({ item }: ActionCardProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-[11px] font-bold uppercase tracking-tight text-zinc-500">
-          <span className="flex items-center gap-1.5">
+        <div className="flex items-center gap-4 text-[11px] uppercase tracking-tight ">
+          <span className="flex items-center gap-1.5 text-zinc-400">
             <Calendar size={12} /> {item.date}
           </span>
           {item.dueDate && item.dueDate.trim() && (
-            <span className="text-rose-400/80 flex items-center gap-1.5">
+            <span
+              className={`
+              ${late ? "text-rose-400/80" : "text-zinc-400"}
+              flex items-center gap-1.5 font-bold
+            `}
+            >
               <Loader size={12} className="animate-spin-slow" /> {item.dueDate}
             </span>
           )}
@@ -74,7 +87,7 @@ export function Card({ item }: ActionCardProps) {
         {item.ctaAction && (
           <div className="flex items-center justify-between">
             <span
-              className="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-500/20 uppercase cursor-pointer"
+              className="text-xs px-3 py-1.5 rounded-lg cursor-pointer transition border border-2 border-zinc-600 hover:border-zinc-400 text-white whitespace-nowrap"
               onClick={(e) => {
                 e.stopPropagation();
                 item.ctaAction?.();
@@ -82,6 +95,11 @@ export function Card({ item }: ActionCardProps) {
             >
               {item.cta}
             </span>
+          </div>
+        )}
+        {item.urgent && (
+          <div className="absolute right-2 text-xs bottom-0 w-8 my-4 text-red-500">
+            <ShieldAlert size={25} />
           </div>
         )}
       </div>
