@@ -58,7 +58,7 @@ export function NextActions() {
             onEdit: () => setEditingItem(action),
             onRemove: () => setItemToDelete(action.id),
             date: formatDate(action.created_at ?? ""),
-            dueDate: `${getDaysRemaining(action.due_date)} ${formatDate(action.due_date)}`,
+            dueDate: `${getDaysRemaining(action.due_date ?? "")} ${formatDate(action.due_date ?? "")}`,
             text: action.text,
             cta: "Mark as Done",
             ctaAction: () => setItemToComplete(action.id),

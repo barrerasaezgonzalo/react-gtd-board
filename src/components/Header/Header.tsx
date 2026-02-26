@@ -43,6 +43,14 @@ export function Header({ openSidebar }: HeaderProps) {
                 {getCount("backLog")} Tasks
               </span>
             </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] text-zinc-500 uppercase font-bold leading-none">
+                Waiting
+              </span>
+              <span className="text-sm font-semibold text-zinc-300">
+                {getCount("waiting")} Tasks
+              </span>
+            </div>
             <div className="h-8 w-px bg-zinc-800" />
             <div className="flex flex-col">
               <div className="py-4 border-t border-zinc-800">

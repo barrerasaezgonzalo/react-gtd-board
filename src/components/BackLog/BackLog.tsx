@@ -5,7 +5,7 @@ import { Logs } from "lucide-react";
 import { Card } from "../ui/Card";
 import { Title } from "../ui/Title";
 import { useActions } from "@/context/ActionContext";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getDaysRemaining } from "@/lib/utils";
 import { EditModal } from "../ui/EditModal";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import { MAX_ITEMS_PER_PAGE } from "@/constants";
@@ -44,8 +44,10 @@ export function BackLog() {
           key={action.id}
           item={{
             title: action.title,
+            onEdit: () => setEditingItem(action),
             onRemove: () => setItemToDelete(action.id),
             date: formatDate(action.created_at ?? ""),
+            dueDate: `${getDaysRemaining(action.due_date ?? "")} ${formatDate(action.due_date ?? "")}`,
             cta: "Make Action",
             ctaAction: () =>
               setEditingItem({ ...action, status: "nextActions" }),

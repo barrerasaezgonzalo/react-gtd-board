@@ -11,13 +11,16 @@ import { MAX_ITEMS_PER_PAGE } from "@/constants";
 import { Capture } from "../ui/Capture";
 import { EmptyState } from "../ui/EmptyState";
 import { Loading } from "../ui/Loading";
+import { Action } from "@/types";
+import { EditModal } from "../ui/EditModal";
 
 export function Done() {
   const [showAll, setShowAll] = useState(false);
-  const { actions, loading, deleteAction } = useActions();
+  const { actions, loading, deleteAction, saving } = useActions();
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const dones = actions.filter((action) => action.status === "done");
   const displayedActions = showAll ? dones : dones.slice(0, MAX_ITEMS_PER_PAGE);
+  const [editingItem, setEditingItem] = useState<Action | null>(null);
 
   if (loading) return <Loading />;
 
@@ -41,12 +44,21 @@ export function Done() {
           item={{
             urgent: action.urgent,
             title: action.title,
+            onEdit: () => setEditingItem(action),
             onRemove: () => setItemToDelete(action.id),
             date: formatDate(action.created_at ?? ""),
             text: action.text,
           }}
         />
       ))}
+
+      {editingItem && (
+        <EditModal
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          saving={saving}
+        />
+      )}
 
       {!showAll && dones.length > MAX_ITEMS_PER_PAGE && (
         <button

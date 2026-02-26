@@ -11,7 +11,7 @@ export interface ActionContextType {
 export interface Action {
   id: string;
   title: string;
-  due_date: string;
+  due_date: string | null;
   status: "nextActions" | "backLog" | "waiting" | "done";
   text: string;
   urgent: boolean;
@@ -87,3 +87,11 @@ export type Rect = {
   width: number;
   height: number;
 };
+
+export interface userMenu {
+  id: string;
+  slug: string;
+  label: string;
+  url: string;
+  user_id: string;
+}

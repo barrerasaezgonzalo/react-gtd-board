@@ -13,7 +13,7 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
   const [errorFallback, setErrorFallback] = useState<string | null>(null);
   const [formData, setFormData] = useState<ActionParams>({
     title: item.title,
-    due_date: item.due_date ? item.due_date.split("T")[0] : "",
+    due_date: item.due_date ? item.due_date.split("T")[0] : undefined,
     status: item.status,
     text: item.text,
     urgent: item.urgent,
@@ -21,7 +21,11 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
   const textareaRef = useAutoResizeTextarea(formData.text);
   const modalRef = useRef<HTMLDivElement>(null);
   const isFormValid =
-    (formData.title ?? "").trim().length > 5 && formData.due_date !== "";
+    (formData.title ?? "").trim().length > 5 &&
+    (formData.status !== "nextActions" ||
+      (formData.due_date ?? "").trim() !== "");
+  const isDueDateMissing =
+    formData.status === "nextActions" && !(formData.due_date ?? "").trim();
   const { file, preview, fileName, handleUpload } = useFilePreview({
     bucket: "gtd",
     initialPath: item.file_path,
@@ -41,9 +45,17 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
   };
 
   const handleSave = async () => {
+    const normalizedData = {
+      ...formData,
+      due_date:
+        formData.due_date && formData.due_date.trim() !== ""
+          ? formData.due_date
+          : null,
+    };
+
     await updateAction({
       id: item.id,
-      updates: formData,
+      updates: normalizedData,
       file,
       removeFile,
     });
@@ -114,11 +126,11 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
             <input
               name="due_date"
               type="date"
-              value={formData.due_date}
+              value={formData.due_date ?? ""}
               onChange={handleChange}
               className={`
                 w-full bg-zinc-800/50 border rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none transition [color-scheme:dark]
-                ${formData.due_date === "" ? "border-red-700 focus:border-red-500/50" : "border-zinc-700 focus:border-blue-500/50"}
+                ${isDueDateMissing ? "border-red-700 focus:border-red-500/50" : "border-zinc-700 focus:border-blue-500/50"}
                 `}
             />
           </div>

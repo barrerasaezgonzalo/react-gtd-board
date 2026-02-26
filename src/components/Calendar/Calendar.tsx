@@ -113,7 +113,7 @@ export function Calendar() {
 
               <div className="flex flex-col gap-1 overflow-visible">
                 {displayedTask.map((task) => {
-                  const late = getDaysRemaining(task?.due_date).includes(
+                  const late = getDaysRemaining(task?.due_date ?? '').includes(
                     "Vencida",
                   );
                   return (
