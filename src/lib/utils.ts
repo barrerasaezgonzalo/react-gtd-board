@@ -1,4 +1,4 @@
-import type { Action } from "../types.ts";
+import type { Action } from "../types";
 
 export const formatDate = (dateString: string): string => {
   if (!dateString) return "";

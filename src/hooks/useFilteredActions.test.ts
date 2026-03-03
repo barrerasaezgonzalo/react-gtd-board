@@ -1,11 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import type { Action } from "../types.ts";
+import type { Action } from "../types";
 import {
   filterByStatus,
   filterNextActionsByContext,
   getActionsByStatus,
-} from "./useFilteredActions.ts";
+} from "./useFilteredActions";
 
 const sampleActions: Action[] = [
   {
