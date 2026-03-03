@@ -3,6 +3,14 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --surface-1: #0a0a0a;
+  --surface-2: #18181b;
+  --border-subtle: #3f3f46;
+  --text-muted: #a1a1aa;
+  --accent-next: #38bdf8;
+  --accent-waiting: #f59e0b;
+  --accent-backlog: #a78bfa;
+  --accent-done: #34d399;
 }
 
 @theme inline {
@@ -16,6 +24,10 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --surface-1: #09090b;
+    --surface-2: #18181b;
+    --border-subtle: #3f3f46;
+    --text-muted: #a1a1aa;
   }
 }
 

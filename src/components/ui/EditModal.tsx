@@ -1,17 +1,14 @@
 "use client";
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { EditModalProps, ActionParams } from "@/types";
 import { useActions } from "@/context/ActionContext";
-import { useFilePreview } from "@/hooks/useFilePreview";
+import { useProjects } from "@/context/ProjectsContext";
 import { useAutoResizeTextarea } from "@/hooks/useAutoResizeTextarea";
 import { format } from "date-fns";
 
 export function EditModal({ item, onClose, saving }: EditModalProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [removeFile, setRemoveFile] = useState(false);
-  const [errorFallback, setErrorFallback] = useState<string | null>(null);
   const [formData, setFormData] = useState<ActionParams>({
     title: item.title,
     due_date: item.due_date
@@ -20,6 +17,10 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
     status: item.status,
     text: item.text,
     urgent: item.urgent,
+    energy: item.energy ?? "medium",
+    context: item.context,
+    file_urls: item.file_urls ?? "",
+    project_id: item.project_id ?? null,
   });
 
   const textareaRef = useAutoResizeTextarea(formData.text);
@@ -30,12 +31,8 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
       (formData.due_date ?? "").trim() !== "");
   const isDueDateMissing =
     formData.status === "nextActions" && !(formData.due_date ?? "").trim();
-  const { file, preview, fileName, handleUpload } = useFilePreview({
-    bucket: "gtd",
-    initialPath: item.file_path,
-  });
-  const displaySrc = errorFallback || preview || "";
   const { updateAction } = useActions();
+  const { projects } = useProjects();
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -44,13 +41,25 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "urgent" ? value === "true" : value,
+      [name]:
+        name === "urgent"
+          ? value === "true"
+          : name === "project_id"
+            ? value || null
+            : value,
     }));
   };
 
   const handleSave = async () => {
+    const cleanedUrls = (formData.file_urls || "")
+      .split("\n")
+      .map((url) => url.trim())
+      .filter((url) => url.length > 0)
+      .sort();
+
     const normalizedData = {
       ...formData,
+      file_urls: cleanedUrls.join("\n"),
       due_date:
         formData.due_date && formData.due_date.trim() !== ""
           ? formData.due_date
@@ -60,9 +69,8 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
     await updateAction({
       id: item.id,
       updates: normalizedData,
-      file,
-      removeFile,
     });
+
     onClose();
   };
 
@@ -91,7 +99,7 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
     >
       <div
         ref={modalRef}
-        className={`bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-all duration-200 ${
+        className={`bg-zinc-900 border border-zinc-800 w-full max-w-[500px] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-all duration-200 ${
           isVisible
             ? "opacity-100 scale-100 translate-y-0"
             : "opacity-0 scale-95 translate-y-4"
@@ -107,47 +115,55 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
           </button>
         </div>
 
-        <div className="p-6 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
-          <div>
-            <label className="text-[11px] font-bold uppercase tracking-tight text-zinc-500 block mb-1.5">
-              Title
-            </label>
-            <input
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              className={`
-                w-full bg-zinc-800/50 border rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none transition
-                ${!((formData.title ?? "").trim().length > 5) ? "border-red-700 focus:border-red-500/50" : "border-zinc-700 focus:border-blue-500/50"}
+        <div className="px-6 py-2 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
+          <div className="flex items-center gap-4">
+            <div className="relative w-full">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none">
+                Title:
+              </span>
+
+              <input
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                className={`
+                  w-full pl-16 pr-4 py-2 bg-zinc-800/50 border rounded-lg
+                  text-sm text-zinc-200 focus:outline-none transition
+                  ${
+                    !((formData.title ?? "").trim().length > 5)
+                      ? "border-red-700 focus:border-red-500/50"
+                      : "border-zinc-700 focus:border-blue-500/50"
+                  }
                 `}
-            />
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="text-[11px] font-bold uppercase tracking-tight text-zinc-500 block mb-1.5">
-              Due Date
-            </label>
+          <div className="relative w-full">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none">
+              Due Date:
+            </span>
             <input
               name="due_date"
               type="datetime-local"
               value={formData.due_date ?? ""}
               onChange={handleChange}
               className={`
-                w-full bg-zinc-800/50 border rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none transition [color-scheme:dark]
+                w-full pl-22 pr-4 bg-zinc-800/50 border rounded-lg py-2 text-sm text-zinc-200 focus:outline-none transition [color-scheme:dark]
                 ${isDueDateMissing ? "border-red-700 focus:border-red-500/50" : "border-zinc-700 focus:border-blue-500/50"}
                 `}
             />
           </div>
 
-          <div>
-            <label className="text-[11px] font-bold uppercase tracking-tight text-zinc-500 block mb-1.5">
+          <div className="relative w-full">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none">
               Status
-            </label>
+            </span>
             <select
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition appearance-none cursor-pointer"
+              className="w-full pl-22 pr-4 bg-zinc-800/50 border border-zinc-700 rounded-lg py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition appearance-none cursor-pointer"
             >
               <option className="bg-zinc-800" value="nextActions">
                 Next Actions
@@ -161,59 +177,113 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
               <option className="bg-zinc-800" value="done">
                 Done
               </option>
+              <option className="bg-zinc-800" value="someday">
+                Someday / Maybe
+              </option>
             </select>
           </div>
 
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-tight text-zinc-500 block mb-1.5">
-              File
-            </label>
-            <input
-              type="file"
-              onChange={(e) => {
-                if (!e.target.files?.length) return;
-                handleUpload(e.target.files[0]);
-              }}
-              className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition"
-            />
-            {displaySrc && !removeFile && (
-              <div className="mt-3 flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-                <a href={preview ?? "#"} target="_blank">
-                  <Image
-                    src={displaySrc}
-                    alt="preview"
-                    width={64}
-                    height={64}
-                    className="w-16 h-16 object-cover rounded-md border border-zinc-700"
-                    onError={() => setErrorFallback("/fallBackImage.png")}
-                    unoptimized
-                  />
-                </a>
-                <div className="text-sm text-zinc-300 truncate">{fileName}</div>
-                <div
-                  className="cursor-pointer"
-                  onClick={() => {
-                    setRemoveFile(true);
-                  }}
-                >
-                  <X size={20} />
-                </div>
-              </div>
-            )}
+            <div>
+              <label className="text-[11px] font-bold uppercase tracking-tight text-zinc-500 block mb-1.5">
+                Past URL Files // One URL per line
+              </label>
+
+              <textarea
+                name="file_urls"
+                value={formData.file_urls || ""}
+                onChange={handleChange}
+                placeholder={`https://example.com/file1.pdf
+https://example.com/file2.png
+`}
+                rows={4}
+                className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition resize-none"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="text-[11px] font-bold uppercase tracking-tight text-zinc-500 block mb-1.5">
+          <div className="relative w-full">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none">
               Priority
-            </label>
+            </span>
             <select
               name="urgent"
               value={String(formData.urgent)}
               onChange={handleChange}
-              className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition appearance-none cursor-pointer"
+              className="w-full pl-22 bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition appearance-none cursor-pointer"
             >
-              <option value="false">Normal</option>
-              <option value="true">Urgent</option>
+              <option className="bg-zinc-800" value="false">
+                Normal
+              </option>
+              <option className="bg-zinc-800" value="true">
+                Urgent
+              </option>
+            </select>
+          </div>
+
+          <div className="relative w-full">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none">
+              Energy
+            </span>
+            <select
+              name="energy"
+              value={formData.energy ?? "medium"}
+              onChange={handleChange}
+              className="w-full pl-22 bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition appearance-none cursor-pointer"
+            >
+              <option className="bg-zinc-800" value="low">
+                Low
+              </option>
+              <option className="bg-zinc-800" value="medium">
+                Medium
+              </option>
+              <option className="bg-zinc-800" value="high">
+                High
+              </option>
+            </select>
+          </div>
+
+          <div className="relative w-full">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none">
+              Context
+            </span>
+            <select
+              name="context"
+              value={formData.context}
+              onChange={handleChange}
+              className="w-full pl-22 bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition appearance-none cursor-pointer"
+            >
+              <option className="bg-zinc-800" value="home">
+                Home
+              </option>
+              <option className="bg-zinc-800" value="work">
+                Work
+              </option>
+            </select>
+          </div>
+
+          <div className="relative w-full">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none">
+              Project
+            </span>
+            <select
+              name="project_id"
+              value={formData.project_id ?? ""}
+              onChange={handleChange}
+              className="w-full pl-22 bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition appearance-none cursor-pointer"
+            >
+              <option className="bg-zinc-800" value="">
+                No project
+              </option>
+              {projects.map((project) => (
+                <option
+                  key={project.id}
+                  className="bg-zinc-800"
+                  value={project.id}
+                >
+                  {project.name}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -226,7 +296,7 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
               name="text"
               value={formData.text || ""}
               onChange={handleChange}
-              rows={2}
+              rows={4}
               className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition resize-none overflow-hidden"
             />
           </div>
@@ -235,7 +305,7 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
         <div className="p-6 bg-zinc-800/20 flex justify-end gap-3 border-t border-zinc-800 shrink-0">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-200 transition"
+            className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
           >
             Cancel
           </button>

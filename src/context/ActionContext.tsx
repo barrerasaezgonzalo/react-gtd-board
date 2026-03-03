@@ -20,40 +20,6 @@ export function ActionProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const getFilePath = async (id: string) => {
-    const { data, error } = await supabase
-      .from("gtd_actions")
-      .select("file_path")
-      .eq("id", id)
-      .single();
-
-    if (error) throw error;
-    return data?.file_path ?? null;
-  };
-
-  const removeFileFromStorage = async (path: string) => {
-    const { error } = await supabase.storage.from("gtd").remove([path]);
-
-    if (error) throw error;
-  };
-
-  const clearFilePath = async (id: string) => {
-    const { error } = await supabase
-      .from("gtd_actions")
-      .update({ file_path: null })
-      .eq("id", id);
-
-    if (error) throw error;
-  };
-
-  const deleteOldFile = async (id: string) => {
-    const existingPath = await getFilePath(id);
-    if (!existingPath) return;
-
-    await removeFileFromStorage(existingPath);
-    await clearFilePath(id);
-  };
-
   const userId = user?.id;
   const fetchActions = useCallback(async () => {
     if (!userId) {
@@ -107,44 +73,15 @@ export function ActionProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateAction = async ({
-    id,
-    updates,
-    file,
-    removeFile,
-  }: UpdateActionParams) => {
+  const updateAction = async ({ id, updates }: UpdateActionParams) => {
     if (!user) return;
 
     setSaving(true);
 
     try {
-      let newFilePath: string | undefined;
-
-      if (file) {
-        await deleteOldFile(id);
-
-        const { data, error } = await supabase.storage
-          .from("gtd")
-          .upload(`actions/${crypto.randomUUID()}-${file.name}`, file);
-
-        if (error) throw error;
-
-        newFilePath = data.path;
-      }
-
-      if (removeFile && !file) {
-        await deleteOldFile(id);
-        newFilePath = "";
-      }
-
-      const updateData = {
-        ...updates,
-        ...(newFilePath !== undefined ? { file_path: newFilePath } : {}),
-      };
-
       const { error } = await supabase
         .from("gtd_actions")
-        .update(updateData)
+        .update(updates)
         .eq("user_id", userId)
         .eq("id", id);
 
@@ -152,7 +89,7 @@ export function ActionProvider({ children }: { children: React.ReactNode }) {
 
       setActions((prev) =>
         prev.map((action) =>
-          action.id === id ? { ...action, ...updateData } : action,
+          action.id === id ? { ...action, ...updates } : action,
         ),
       );
     } catch (err) {
@@ -168,8 +105,6 @@ export function ActionProvider({ children }: { children: React.ReactNode }) {
     setSaving(true);
 
     try {
-      await deleteOldFile(id);
-
       const { error } = await supabase
         .from("gtd_actions")
         .delete()

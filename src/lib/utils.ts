@@ -1,4 +1,4 @@
-import { Action } from "@/types";
+import type { Action } from "../types.ts";
 
 export const formatDate = (dateString: string): string => {
   if (!dateString) return "";
@@ -62,4 +62,15 @@ export function sortActions(actions: Action[]) {
 
     return getTime(a.due_date) - getTime(b.due_date);
   });
+}
+
+export function actionMatchesQuery(action: Action, query: string) {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) return true;
+
+  return (
+    action.title.toLowerCase().includes(normalized) ||
+    (action.text ?? "").toLowerCase().includes(normalized) ||
+    (action.file_urls ?? "").toLowerCase().includes(normalized)
+  );
 }

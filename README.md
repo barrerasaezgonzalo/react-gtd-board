@@ -1,381 +1,277 @@
-# GTD Board & Action Tracker
+# React GTD
 
-Un dashboard de alto rendimiento basado en la metodología **Getting Things Done (GTD)**, construido con **Next.js App Router**. Esta aplicación se centra en la velocidad, una interfaz reactiva y una gestión de tareas fluida utilizando patrones de estado centralizado.
+Aplicacion GTD (Getting Things Done) con Next.js + Supabase.
 
-## 🚀 Stack Tecnológico
+## Stack
 
-- **Framework:** [Next.js 15 (App Router)](https://nextjs.org/)
-- **Lenguaje:** [TypeScript](https://www.typescriptlang.org/)
-- **Estilos:** [Tailwind CSS](https://tailwindcss.com/)
-- **Backend & Base de Datos:** [Supabase](https://supabase.com/)
-- **Iconos:** [Lucide React](https://lucide.dev/)
-- **Despliegue:** [Vercel](https://vercel.com/)
+- Next.js (App Router)
+- React + TypeScript
+- Tailwind CSS
+- Supabase (Auth + Database)
+- Lucide React
 
-## 🏗️ Arquitectura y Características Clave
+## Funcionalidades
 
-### 1. Contexto de Acciones Centralizado
+### GTD Core
 
-La aplicación utiliza un `ActionContext` personalizado para gestionar el estado global de las tareas. Esto permite:
+- Captura rapida (entra a Backlog)
+- Estados de tarea:
+  - `backLog`
+  - `nextActions`
+  - `waiting`
+  - `done`
+  - `someday` (Someday/Maybe)
+- EditModal para actualizar:
+  - titulo
+  - due_date
+  - status
+  - prioridad (urgent)
+  - energy (`low|medium|high`)
+  - context (`home|work`)
+  - project
+  - links de archivos (URL por linea)
 
-- **Contadores en Tiempo Real:** Actualización automática de los totales en el Sidebar para _Next Actions, Backlog, Waiting_ y _Done_.
-- **Reactividad Cruzada:** Mover tareas entre estados se refleja instantáneamente en toda la UI sin recargas de página.
+### Vistas
 
-### 2. Sistema de Captura Inteligente
+- Next Actions (filtro por Context + Energy)
+- Backlog
+- Waiting
+- Done
+- Someday / Maybe
+- Kanban (drag and drop entre columnas)
+  - valida que no puedes mover a `nextActions` sin `due_date`
+- Calendar
+- Notes
+- Projects
+- Weekly Review (wizard)
+- System Health (dashboard)
 
-- **Validación:** Validación inline (mínimo 5 caracteres) para asegurar la calidad de las entradas.
-- **Flujo Optimizado:** Captura rápida directamente al `backLog` para no interrumpir el enfoque en la vista actual.
-- **Feedback de UI:** Mensajes de éxito no intrusivos y cambios visuales según el estado de validación.
+### Navegacion
 
-### 3. Motor de Modales Dinámicos
+- Sidebar: vistas operativas principales
+- Header (desktop):
+  - Search global en vivo
+  - Calendar
+  - Kanban
+  - Weekly Review
+  - System Health
+  - Logout
+- Sidebar (mobile):
+  - quick actions para Calendar/Kanban/Review/Health al final
 
-- **Edición Reutilizable:** Un `EditModal` único que maneja objetos complejos, incluyendo textareas de altura automática y toggles booleanos para el estado `urgent`.
-- **Validación Estricta:** Campos obligatorios (Título, Fecha de vencimiento, Estado) validados a nivel de componente.
+### Search global
 
-## 🔐 Seguridad y Autenticación
+- Busca por `title`, `text` y `file_urls`
+- Filtra en vivo en:
+  - Next Actions
+  - Backlog
+  - Waiting
+  - Done
+  - Someday
+  - Kanban
+  - Calendar
+- Boton `X` para limpiar
 
-- **Google Auth:** Integración completa con Supabase Auth para un inicio de sesión seguro y rápido.
-- **Protección de Datos:** Reglas de seguridad RLS (Row Level Security) para asegurar que cada usuario acceda solo a sus propias acciones.
+### System Health
 
-## 📋 Flujo de Trabajo GTD Incluido
+- KPIs:
+  - Backlog sin procesar
+  - Waiting estancadas (+7 dias aprox)
+  - Atrasadas
+  - Proximas 7 dias
+  - Proyectos (cantidad)
+  - Weekly Review (al dia / pendiente)
+- Health Score (0-100) con semaforo
 
-- **Next Actions:** Tareas inmediatas en las que enfocarse.
-- **Backlog:** El "Buzón" para ideas y tareas futuras.
-- **Waiting:** Elementos pendientes de factores externos.
-- **Done:** Archivo de logros completados con seguimiento de progreso.
+### Weekly Review
 
-## 🛠️ Instalación y Configuración
+- Checklist semanal persistido en Supabase
+- Wizard:
+  - Prev
+  - Next step
+  - Done/Undo por paso
+  - Reset
 
-1.  **Clonar el repositorio:**
-    ```bash
-    git clone [https://github.com/tuusuario/gtd-board.git](https://github.com/tuusuario/gtd-board.git)
-    ```
-2.  **Instalar dependencias:**
-    ```bash
-    npm install
-    ```
-3.  **Variables de Entorno:**
-    Crea un archivo `.env.local` con tus credenciales de Supabase:
-    ```env
-    NEXT_PUBLIC_SUPABASE_URL=tu_url
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_key
-    ```
-4.  **Ejecutar el servidor de desarrollo:**
-    ```bash
-    npm run dev
-    ```
+### Projects
 
-## 📅 Próximas Mejoras (Upcoming)
+- Crear proyecto (nombre + color)
+- Eliminar proyecto
+- Asignar tareas a proyecto
+- Resumen por estado dentro del proyecto
 
-- [ ] Optimización para dispositivos móviles (Responsive Design).
+### Notes
 
-## 🎞️ ScreenShot
+- Busqueda local
+- Pin/unpin
+- Modal expandido
+- Tarjetas mas grandes
 
-### Anexo
+### UX
 
-## Second Feature -- Notes Sistem
+- Scroll-to-top button (flotante) al bajar
+- Anchos unificados entre vistas (`max-w-[1600px]`)
 
-Implementación de un sistema de notas utilizando:
+## Scripts
 
-- React (Clienta Component)
-- Custom Hook (`useNotes`)
-- Supabase como backend
-- Animación tipo FLIP
-- Optimistic UI updates
-- Pinned notes
-- Textarea auto-resizable
-- Modal responsive (desktop + mobile)
-
-## 🚀 Arquitectura
-
-### 📁 Estructura
-
-    /hooks
-      useNotes.ts
-
-    /components
-      Notes.tsx
-
-    /types
-      index.ts
-
-    /lib
-      supabase.ts
-
-## 🧠 Principios de diseño
-
-### 1. Separación de responsabilidades
-
-- `Notes.tsx` → UI + animación + eventos
-- `useNotes.ts` → Estado + comunicación con Supabase
-- Supabase → Persistencia
-
-### 2. Optimistic Updates
-
-Las actualizaciones se aplican primero en el estado local:
-
-```ts
-setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, content } : n)));
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+npm run test
 ```
 
-Luego se persisten en la base de datos.
+## Setup local
 
-### 3. Animación FLIP
+1. Instalar dependencias:
 
-Se captura la posición original de la nota con:
-
-```ts
-getBoundingClientRect();
+```bash
+npm install
 ```
 
-Luego se anima el modal desde esa posición hacia el centro usando:
+2. Crear `.env.local`:
 
-- `position: fixed`
-- `transition`
-- `requestAnimationFrame`
-
-La animación también es reversible al cerrar.
-
-## 📌 Funcionalidades
-
-### ✅ Crear nota
-
-- Se crea localmente
-- Se abre automáticamente
-- Persistencia controlada
-
-### ✅ Editar nota
-
-- Actualización optimista
-- Persistencia asincrónica
-- Textarea controlado
-
-### ✅ Eliminar nota
-
-- Eliminación optimista
-- Eliminación en Supabase
-
-### ✅ Pinned notes
-
-- Toggle visual
-- Orden automático:
-  - Pinned primero
-  - Luego por fecha
-
-### ✅ Modal responsive
-
-- Desktop → centrado
-- Mobile → fullscreen
-- Escape para cerrar
-- Click en backdrop
-- Botón X visible
-
-### ✅ UX avanzada
-
-- Scroll oscuro
-- Textarea auto-resizable
-- Respeto de saltos de línea
-- Prevención de notas vacías (opcional)
-
-## 🔄 Hook: `useNotes`
-
-Expone:
-
-```ts
-{
-  (notes, loading, editNote, deleteNote, addNote, togglePinned);
-}
+```env
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
-El hook es la única fuente de verdad para:
+3. Ejecutar:
 
-- Estado
-- Mutaciones
-- Comunicación con Supabase
-
-## 🗄 Supabase Schema
-
-Tabla: `gtd_notes`
-
-Campos mínimos requeridos:
-
-    id           uuid (PK)
-    content      text
-    pinned       boolean
-    created_at   timestamp
-
-## ⚙️ Mejoras futuras
-
-- Autosave con debounce
-- Rollback en caso de error
-- localStorage fallback
-- Separador visual "Pinned / Others"
-- Animaciones con Framer Motion
-- Sincronización en tiempo real (Supabase Realtime)
-- Virtualización si escala
-
-## 🏁 Estado actual
-
-✔ Arquitectura limpia\
-✔ UI fluida\
-✔ Sin refetch innecesario\
-✔ Separación correcta UI / lógica\
-✔ Lista para escalar
-
-## 🎞️ ScreenShot
-
-### Anexo
-
-## Tertiary Feature -- Vista de Calendario
-
-implementación de la vista de calendario
-integrada dentro del sistema de productividad (GTD).
-
-La vista permite:
-
-- Visualizar tareas o notas asociadas a fechas específicas
-- Navegar por meses
-- Identificar elementos pendientes
-- Integrarse con Supabase como fuente de datos
-
----
-
-## 🎯 Objetivo
-
-Proveer una representación temporal de los elementos del sistema,
-permitiendo planificación y revisión semanal/mensual.
-
-## 🏗 Arquitectura
-
-### Componentes principales
-
-    /components
-      CalendarView.tsx
-      CalendarGrid.tsx
-      CalendarDayCell.tsx
-
-    /hooks
-      useCalendar.ts
-
-## 🧠 Principios de diseño
-
-### 1. Separación de responsabilidades
-
-- `CalendarView` → Contenedor principal
-- `CalendarGrid` → Renderizado de la matriz mensual
-- `CalendarDayCell` → Día individual
-- `useCalendar` → Lógica de fechas y fetch de datos
-
-## 📅 Modelo de datos esperado
-
-Tabla ejemplo: `gtd_events`
-
-Campos mínimos:
-
-    id           uuid (PK)
-    title        text
-    date         date
-    completed    boolean
-    created_at   timestamp
-
-## 🔄 Hook: useCalendar
-
-Responsabilidades:
-
-- Calcular días del mes actual
-- Manejar navegación entre meses
-- Obtener eventos por rango de fecha
-- Agrupar eventos por día
-
-Ejemplo simplificado:
-
-```ts
-function useCalendar() {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [events, setEvents] = useState([]);
-
-  function nextMonth() {
-    const next = new Date(currentMonth);
-    next.setMonth(next.getMonth() + 1);
-    setCurrentMonth(next);
-  }
-
-  function prevMonth() {
-    const prev = new Date(currentMonth);
-    prev.setMonth(prev.getMonth() - 1);
-    setCurrentMonth(prev);
-  }
-
-  return {
-    currentMonth,
-    nextMonth,
-    prevMonth,
-    events,
-  };
-}
+```bash
+npm run dev
 ```
 
-## 🧮 Renderizado del calendario
+## SQL requerido en Supabase
 
-La grilla mensual se genera:
+### 1) Projects + relacion con acciones
 
-1.  Calculando el primer día del mes
-2.  Determinando el offset según el día de la semana
-3.  Generando matriz 7x5 (o 7x6 si es necesario)
+```sql
+begin;
 
-## 🎨 UX Considerations
+create table if not exists public.projects (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  name text not null,
+  color text not null default '#38bdf8',
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
 
-- Día actual destacado
-- Indicador visual si existen eventos
-- Hover states claros
-- Navegación accesible (botones + teclado opcional)
-- Responsive (colapsar a vista vertical en mobile)
+create unique index if not exists projects_user_name_unique
+  on public.projects (user_id, lower(name));
 
-## ⚙️ Integración con Supabase
+create index if not exists projects_user_id_idx
+  on public.projects(user_id);
 
-Ejemplo de fetch por rango:
+alter table public.gtd_actions
+  add column if not exists project_id uuid null
+  references public.projects(id) on delete set null;
 
-```ts
-const { data } = await supabase
-  .from("gtd_events")
-  .select("*")
-  .gte("date", startOfMonth)
-  .lte("date", endOfMonth);
+create index if not exists gtd_actions_project_id_idx
+  on public.gtd_actions(project_id);
+
+alter table public.projects enable row level security;
+
+create policy "projects_select_own"
+on public.projects for select to authenticated
+using (auth.uid() = user_id);
+
+create policy "projects_insert_own"
+on public.projects for insert to authenticated
+with check (auth.uid() = user_id);
+
+create policy "projects_update_own"
+on public.projects for update to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "projects_delete_own"
+on public.projects for delete to authenticated
+using (auth.uid() = user_id);
+
+commit;
 ```
 
-Buenas prácticas:
+### 2) Weekly Review
 
-- No refetch en cada render
-- Cachear por mes si es necesario
-- Actualizaciones optimistas al marcar completado
+```sql
+begin;
 
-## 🚀 Mejoras futuras
+create table if not exists public.weekly_reviews (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  week_start date not null,
+  steps jsonb not null default '[]'::jsonb,
+  completed boolean not null default false,
+  completed_at timestamptz null,
+  created_at timestamptz not null default now()
+);
 
-- Drag & Drop entre días
-- Vista semanal
-- Filtros por tipo
-- Realtime updates
-- Soporte para eventos recurrentes
-- Integración con recordatorios
+create unique index if not exists weekly_reviews_user_week_unique
+  on public.weekly_reviews (user_id, week_start);
 
-## 🏁 Estado
+create index if not exists weekly_reviews_user_idx
+  on public.weekly_reviews (user_id);
 
-Vista funcional con:
+alter table public.weekly_reviews enable row level security;
 
-✔ Navegación mensual\
-✔ Integración con backend\
-✔ Separación clara de lógica y UI\
-✔ Preparada para escalar
+create policy "weekly_reviews_select_own"
+on public.weekly_reviews for select to authenticated
+using (auth.uid() = user_id);
 
-## 📎 Relación con módulo Notes
+create policy "weekly_reviews_insert_own"
+on public.weekly_reviews for insert to authenticated
+with check (auth.uid() = user_id);
 
-El calendario puede:
+create policy "weekly_reviews_update_own"
+on public.weekly_reviews for update to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
 
-- Mostrar notas con fecha asociada
-- Convertir notas en eventos
-- Servir como vista alternativa de planificación
+create policy "weekly_reviews_delete_own"
+on public.weekly_reviews for delete to authenticated
+using (auth.uid() = user_id);
 
-## 🎞️ ScreenShot
+commit;
+```
 
-## 📄 Licencia
+### 3) Energy en acciones
 
-Proyecto interno / experimental.
+```sql
+alter table public.gtd_actions
+add column if not exists energy text
+check (energy in ('low','medium','high'));
+```
+
+### 4) Someday/Maybe en status (si tienes CHECK)
+
+Si tu columna `status` tiene `CHECK`, agrega `someday` al constraint.
+
+## Adjuntos sin upload API
+
+La app usa links en textarea (uno por linea).  
+Es una estrategia valida para no manejar almacenamiento/servidor de uploads.
+
+Opciones compatibles:
+
+- Google Drive
+- Dropbox
+- Notion links
+- cualquier URL publica
+
+## Estado actual
+
+- Lint: OK
+- Tests base: OK (`node:test`)
+
+## Repositorio
+
+- URL: `https://github.com/barrerasaezgonzalo/react-gtd-board` (actualiza con tu repo real)
+- Branch principal sugerida: `main`
+
+## Licencia
+
+Proyecto interno / uso personal.
+
+Si deseas publicar open-source, puedes cambiar a una licencia estandar (ej. MIT).

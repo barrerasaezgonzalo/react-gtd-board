@@ -4,6 +4,8 @@ import "./globals.css";
 import { ActionProvider } from "@/context/ActionContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { NotesProvider } from "@/context/NotesContext";
+import { ProjectsProvider } from "@/context/ProjectsContext";
+import { WeeklyReviewProvider } from "@/context/WeeklyReviewContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,9 +35,13 @@ export default function RootLayout({
       >
         {" "}
         <AuthProvider>
-          <ActionProvider>
-            <NotesProvider>{children}</NotesProvider>
-          </ActionProvider>
+          <WeeklyReviewProvider>
+            <ProjectsProvider>
+              <ActionProvider>
+                <NotesProvider>{children}</NotesProvider>
+              </ActionProvider>
+            </ProjectsProvider>
+          </WeeklyReviewProvider>
         </AuthProvider>
       </body>
     </html>

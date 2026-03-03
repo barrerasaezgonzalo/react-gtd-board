@@ -6,6 +6,7 @@ import { ConfirmModal } from "../ui/ConfirmModal";
 import { EmptyState } from "../ui/EmptyState";
 import { useNotes } from "@/context/NotesContext";
 import { Loading } from "../ui/Loading";
+import { Capture } from "../ui/Capture";
 
 export function Notes() {
   const { notes, editNote, deleteNote, addNote, togglePinned, loading } =
@@ -136,13 +137,14 @@ export function Notes() {
   return (
     <div className="relative">
       <div
-        className={`max-w-4xl mx-auto space-y-6 transition-opacity duration-300 ${
+        className={`max-w-[1600px] mx-auto space-y-6 transition-opacity duration-300 ${
           selected ? "opacity-20 pointer-events-none" : ""
         }`}
       >
+        <Capture />
         <div className="flex items-center justify-between pb-2 border-b border-zinc-800/50">
-          <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-2">
-            <StickyNote size={16} className="text-blue-400" />
+          <h2 className="text-2xl font-bold uppercase tracking-widest text-white flex items-center gap-2">
+            <StickyNote size={25} className="text-blue-400" />
             Notes
           </h2>
 
@@ -152,7 +154,7 @@ export function Notes() {
               placeholder="Search notes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="text-xs bg-zinc-800/50 border border-zinc-700 rounded-lg px-3 py-1.5 text-zinc-200 focus:outline-none focus:border-blue-500/50 transition w-35 md:w-64"
+              className="text-xs bg-zinc-800/50 border border-zinc-700 rounded px-3 py-1.5 text-zinc-200 focus:outline-none focus:border-blue-500/50 transition w-35 md:w-64"
             />
             <button
               onClick={handleAddNote}
@@ -164,7 +166,7 @@ export function Notes() {
         </div>
 
         {(sortedNotes.length === 0 || loading) && <EmptyState />}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
           {sortedNotes.map((note) => (
             <div
               key={note.id}
@@ -172,7 +174,7 @@ export function Notes() {
                 if (el) refs.current[note.id] = el;
               }}
               onClick={() => openNote(note.id)}
-              className={`min-h-40 rounded-lg border ${note.pinned ? "border-yellow-400" : "border-zinc-700"} bg-zinc-900 cursor-pointer hover:border-zinc-500 transition-all duration-200 p-4 text-sm text-zinc-300 whitespace-pre-wrap line-clamp-6`}
+              className={`min-h-52 rounded-lg border ${note.pinned ? "border-yellow-400" : "border-zinc-700"} bg-zinc-900 cursor-pointer hover:border-zinc-500 transition-all duration-200 p-5 text-sm text-zinc-300 whitespace-pre-wrap line-clamp-6`}
             >
               {note.content}
             </div>

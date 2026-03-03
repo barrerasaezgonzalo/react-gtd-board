@@ -1,24 +1,65 @@
-import { HeaderProps } from "@/types";
+import { HeaderProps, ActionStatus } from "@/types";
 import { useActions } from "@/context/ActionContext";
-import { LogOut, Menu } from "lucide-react";
+import {
+  ActivitySquare,
+  X,
+  CalendarDays,
+  ClipboardCheck,
+  KanbanSquare,
+  LogOut,
+  Menu,
+  Search,
+} from "lucide-react";
 import { useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { getDaysRemaining } from "@/lib/utils";
 
-export function Header({ openSidebar }: HeaderProps) {
+export function Header({
+  openSidebar,
+  onOpenWeeklyReview,
+  onOpenCalendar,
+  onOpenKanban,
+  onNavigateToView,
+  onOpenSystemHealth,
+  onSearchSubmit,
+}: HeaderProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const { actions } = useActions();
-  const getCount = (status: string) => {
+  const getCount = (status: ActionStatus) => {
     return actions.filter((action) => action.status === status).length;
   };
 
-  const stats = useMemo(() => {
-    const total = actions.length;
-    if (total === 0) return 0;
-    const doneCount = actions.filter((a) => a.status === "done").length;
-    return Math.round((doneCount / total) * 100);
+  const completion = useMemo(() => {
+    const operational = actions.filter((action) => action.status !== "someday");
+    const totalOperational = operational.length;
+    const doneCount = operational.filter((a) => a.status === "done").length;
+    const percent =
+      totalOperational === 0
+        ? 0
+        : Math.round((doneCount / totalOperational) * 100);
+
+    return { percent, doneCount, totalOperational };
   }, [actions]);
+  const overdueCount = useMemo(
+    () =>
+      actions.filter(
+        (action) =>
+          action.status !== "done" &&
+          !!action.due_date &&
+          getDaysRemaining(action.due_date) < 0,
+      ).length,
+    [actions],
+  );
+  const searchMatches = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return [];
+    return actions
+      .filter((action) => action.title.toLowerCase().includes(query))
+      .slice(0, 5);
+  }, [actions, search]);
 
   const { logout } = useAuth();
 
@@ -51,23 +92,31 @@ export function Header({ openSidebar }: HeaderProps) {
                 {getCount("waiting")} Tasks
               </span>
             </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] text-rose-500 uppercase font-bold leading-none">
+                Overdue
+              </span>
+              <span className="text-sm font-semibold text-rose-400">
+                {overdueCount} Tasks
+              </span>
+            </div>
             <div className="h-8 w-px bg-zinc-800" />
             <div className="flex flex-col">
               <div className="py-4 border-t border-zinc-800">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-[11px] font-bold uppercase tracking-tight text-zinc-500">
-                    Progress
+                    Completion
                   </span>
                   <span className="text-xs font-semibold text-blue-400 pl-2">
-                    {" "}
-                    {stats} %{" "}
+                    {completion.doneCount}/{completion.totalOperational} (
+                    {completion.percent}%)
                   </span>
                 </div>
 
                 <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
                   <div
                     className="bg-blue-500 h-full transition-all duration-500 ease-out"
-                    style={{ width: `${stats}%` }}
+                    style={{ width: `${completion.percent}%` }}
                   />
                 </div>
               </div>
@@ -76,6 +125,72 @@ export function Header({ openSidebar }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          <div className="hidden md:flex h-9 items-center gap-2 border border-zinc-800 rounded-lg px-2 py-1 bg-zinc-900/50">
+            <Search size={14} className="text-zinc-500" />
+            <input
+              value={search}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSearch(value);
+                onSearchSubmit?.(value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return;
+                onSearchSubmit?.(search);
+                const first = searchMatches[0];
+                if (!first || !onNavigateToView) return;
+                onNavigateToView(first.status);
+              }}
+              placeholder="Search action..."
+              className="h-full w-36 lg:w-48 bg-transparent text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none"
+            />
+            {search.trim().length > 0 && (
+              <button
+                onClick={() => {
+                  setSearch("");
+                  onSearchSubmit?.("");
+                }}
+                title="Clear search"
+                className="text-zinc-500 hover:text-zinc-300 transition"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+          <div className="hidden md:flex items-center gap-1 rounded-xl border border-zinc-800 bg-zinc-900/60 p-1.5">
+            <button
+              onClick={onOpenCalendar}
+              title="Calendar"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 px-2.5 py-1.5 text-xs font-medium text-zinc-200 hover:border-sky-600 hover:text-sky-300 transition"
+            >
+              <CalendarDays size={16} />
+              <span>Calendar</span>
+            </button>
+            <button
+              onClick={onOpenKanban}
+              title="Kanban"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 px-2.5 py-1.5 text-xs font-medium text-zinc-200 hover:border-violet-600 hover:text-violet-300 transition"
+            >
+              <KanbanSquare size={16} />
+              <span>Kanban</span>
+            </button>
+            <button
+              onClick={onOpenWeeklyReview}
+              title="Weekly Review"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 px-2.5 py-1.5 text-xs font-medium text-zinc-200 hover:border-cyan-600 hover:text-cyan-300 transition"
+            >
+              <ClipboardCheck size={16} />
+              <span>Review</span>
+            </button>
+            <button
+              onClick={onOpenSystemHealth}
+              title="System Health"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 px-2.5 py-1.5 text-xs font-medium text-zinc-200 hover:border-emerald-600 hover:text-emerald-300 transition"
+            >
+              <ActivitySquare size={16} />
+              <span>Health</span>
+            </button>
+          </div>
           <div className="h-8 w-px bg-zinc-800 mx-2" />
           <button onClick={() => setConfirmOpen(true)}>
             <LogOut
