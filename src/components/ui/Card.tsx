@@ -55,18 +55,29 @@ export function Card({ item }: ActionCardProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-[11px] uppercase tracking-tight ">
+        <div className="flex items-center gap-4 text-[11px] uppercase tracking-tight">
           <span className="flex items-center gap-1.5 text-zinc-400">
             <Calendar size={12} /> {item.date}
           </span>
-          {item.dueDate && item.dueDate.trim() && (
+
+          {item.dueDate?.trim() && item.remainingDays != null && (
             <span
               className={`
-              ${late ? "text-rose-400/80" : "text-zinc-400"}
-              flex items-center gap-1.5 font-bold
-            `}
+        flex items-center gap-1.5 font-bold
+        ${
+          item.remainingDays < 0
+            ? "text-rose-500"
+            : item.remainingDays < 1
+              ? "text-rose-400"
+              : "text-zinc-400"
+        }
+      `}
             >
-              <Loader size={12} className="animate-spin-slow" /> {item.dueDate}
+              <Loader size={12} className="animate-spin-slow" />
+              {item.remainingDays < 0
+                ? "Vencido"
+                : `Quedan ${Math.ceil(item.remainingDays)} día(s)`}{" "}
+              {item.dueDate}
             </span>
           )}
         </div>

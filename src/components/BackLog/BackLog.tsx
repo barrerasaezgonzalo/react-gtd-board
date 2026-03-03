@@ -47,7 +47,7 @@ export function BackLog() {
             onEdit: () => setEditingItem(action),
             onRemove: () => setItemToDelete(action.id),
             date: formatDate(action.created_at ?? ""),
-            dueDate: `${getDaysRemaining(action.due_date ?? "")} ${formatDate(action.due_date ?? "")}`,
+            dueDate: `${formatDate(action.due_date ?? "")}`,
             cta: "Make Action",
             ctaAction: () =>
               setEditingItem({ ...action, status: "nextActions" }),

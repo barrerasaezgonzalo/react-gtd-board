@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Loader } from "lucide-react";
 import { Card } from "../ui/Card";
 import { Title } from "../ui/Title";
 import { useActions } from "@/context/ActionContext";
-import { formatDate, getDaysRemaining } from "@/lib/utils";
+import { formatDate, getDaysRemaining, sortActions } from "@/lib/utils";
 import { EditModal } from "../ui/EditModal";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import { MAX_ITEMS_PER_PAGE } from "@/constants";
@@ -20,7 +20,12 @@ export function Waiting() {
   const { actions, loading, saving, deleteAction, updateAction } = useActions();
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [itemMakeAction, setItemMakeAction] = useState<string | null>(null);
-  const waitings = actions.filter((action) => action.status === "waiting");
+  const waitings = useMemo(() => {
+    const filtered = actions.filter((action) => action.status === "waiting");
+
+    return sortActions(filtered);
+  }, [actions]);
+
   const displayedActions = showAll
     ? waitings
     : waitings.slice(0, MAX_ITEMS_PER_PAGE);
@@ -59,7 +64,8 @@ export function Waiting() {
             onEdit: () => setEditingItem(action),
             onRemove: () => setItemToDelete(action.id),
             date: formatDate(action.created_at ?? ""),
-            dueDate: `${getDaysRemaining(action.due_date ?? "")} ${formatDate(action.due_date ?? "")}`,
+            remainingDays: getDaysRemaining(action.due_date ?? ""),
+            dueDate: `${formatDate(action.due_date ?? "")}`,
             text: action.text,
             cta: "Make Action",
             ctaAction: () => setItemMakeAction(action.id),

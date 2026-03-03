@@ -1,34 +1,13 @@
-"use client";
 import Image from "next/image";
-import { SidebarProps, userMenu } from "@/types";
+import { SidebarProps } from "@/types";
 import Link from "next/link";
-import {
-  Rocket,
-  Logs,
-  Loader,
-  CheckCheck,
-  StickyNote,
-  ExternalLink,
-} from "lucide-react";
+import { Rocket, Logs, Loader, CheckCheck, StickyNote } from "lucide-react";
 import { useActions } from "@/context/ActionContext";
 import { useAuth } from "@/context/AuthContext";
-import { getUserMenu } from "@/lib/menu";
-import { useEffect, useState } from "react";
 
 export function Sidebar({ setActiveView, activeView }: SidebarProps) {
-  const [userMenu, setUserMenu] = useState<userMenu[] | null | undefined>(null);
   const { actions } = useActions();
   const { user } = useAuth();
-
-  useEffect(() => {
-    if (!user?.id) return;
-    const load = async () => {
-      const response = await getUserMenu(user.id);
-      setUserMenu(response);
-    };
-
-    load();
-  }, [user?.id]);
 
   const getCount = (status: string) => {
     return actions.filter((action) => action.status === status).length;
@@ -92,26 +71,6 @@ export function Sidebar({ setActiveView, activeView }: SidebarProps) {
             </button>
           );
         })}
-      </nav>
-
-      <nav className="px-4 py-6 space-y-1 text-sm">
-        {userMenu &&
-          userMenu.map((item) => {
-            return (
-              <Link
-                key={item.id}
-                href={item.url}
-                target="_blank"
-                className={`w-full cursor-pointer flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200                 
-                  text-zinc-400 hover:bg-zinc-800/50 hover:text-sky-400 border border-zinc-800
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <ExternalLink size={18} /> {item.label}
-                </div>
-              </Link>
-            );
-          })}
       </nav>
     </aside>
   );

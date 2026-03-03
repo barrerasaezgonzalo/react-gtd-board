@@ -1,3 +1,5 @@
+import { Action } from "@/types";
+
 export const formatDate = (dateString: string): string => {
   if (!dateString) return "";
 
@@ -6,12 +8,14 @@ export const formatDate = (dateString: string): string => {
   const day = String(date.getUTCDate()).padStart(2, "0");
   const month = String(date.getUTCMonth() + 1).padStart(2, "0");
   const year = date.getUTCFullYear();
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minuts = String(date.getMinutes()).padStart(2, "0");
 
-  return `${day}/${month}/${year}`;
+  return `${day}/${month}/${year} ${hours}:${minuts}`;
 };
 
-export const getDaysRemaining = (targetDateString: string): string => {
-  if (!targetDateString) return "";
+export const getDaysRemaining = (targetDateString: string): number => {
+  if (!targetDateString) return 0;
 
   const targetDate = new Date(targetDateString);
   const today = new Date();
@@ -29,10 +33,33 @@ export const getDaysRemaining = (targetDateString: string): string => {
 
   const diffTime = targetUTC - todayUTC;
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0) return "Vencida";
-  if (diffDays === 0) return "Vence hoy";
-  if (diffDays === 1) return "Queda 1 día";
-
-  return `Quedan ${diffDays} días`;
+  return diffDays;
 };
+
+export function sortActions(actions: Action[]) {
+  const now = Date.now();
+
+  return [...actions].sort((a, b) => {
+    const getTime = (value: string | null) => {
+      if (!value) return Number.POSITIVE_INFINITY;
+      const normalized = value.replace(" ", "T");
+      return new Date(normalized).getTime();
+    };
+
+    const getPriority = (item: Action) => {
+      if (item.urgent) return 0;
+
+      const dueTime = getTime(item.due_date);
+      if (dueTime < now) return 1;
+
+      return 2;
+    };
+
+    const pA = getPriority(a);
+    const pB = getPriority(b);
+
+    if (pA !== pB) return pA - pB;
+
+    return getTime(a.due_date) - getTime(b.due_date);
+  });
+}

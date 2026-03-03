@@ -10,7 +10,6 @@ import {
   format,
   isSameMonth,
   isToday,
-  parseISO,
 } from "date-fns";
 import { Action } from "@/types";
 import { useActions } from "@/context/ActionContext";
@@ -20,7 +19,7 @@ import { Loading } from "../ui/Loading";
 export function Calendar() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const { actions, loading } = useActions();
-  const [showAll, setShowAll] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const nextActions = actions.filter(
     (action) => action.status === "nextActions" || action.status === "waiting",
@@ -30,12 +29,20 @@ export function Calendar() {
 
     nextActions.forEach((task) => {
       if (!task.due_date) return;
-      const key = format(
-        parseISO(task.due_date.substring(0, 10)),
-        "yyyy-MM-dd",
-      );
+
+      const date = new Date(task.due_date);
+      const key = format(date, "yyyy-MM-dd");
+
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(task);
+    });
+
+    map.forEach((tasks) => {
+      tasks.sort((a, b) => {
+        return (
+          new Date(a.due_date!).getTime() - new Date(b.due_date!).getTime()
+        );
+      });
     });
 
     return map;
@@ -57,7 +64,7 @@ export function Calendar() {
   if (loading) return <Loading />;
   return (
     <div className="w-full max-w-4xl mx-auto p-6 bg-zinc-950 text-zinc-100 rounded-2xl shadow-xl border border-zinc-800">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex mx-auto w-xl items-center justify-between mb-6 gap-4      ">
         <button
           onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
           className="px-3 cursor-pointer py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition text-sm"
@@ -65,7 +72,7 @@ export function Calendar() {
           ←
         </button>
 
-        <h2 className="text-lg font-semibold tracking-wide">
+        <h2 className="text-3xl font-semibold tracking-wide">
           {format(currentMonth, "MMMM yyyy")}
         </h2>
 
@@ -75,11 +82,18 @@ export function Calendar() {
         >
           →
         </button>
+
+        <button
+          onClick={() => setCurrentMonth(new Date())}
+          className="px-3 cursor-pointer py-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-900 transition text-sm"
+        >
+          To day
+        </button>
       </div>
 
-      <div className="grid grid-cols-7 text-xs uppercase tracking-wider text-zinc-500 mb-3">
+      <div className="grid grid-cols-7 text-xs uppercase tracking-wider text-zinc-500 mb-2">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-          <div key={d} className="text-center">
+          <div key={d} className="text-center border py-1">
             {d}
           </div>
         ))}
@@ -89,20 +103,21 @@ export function Calendar() {
         {days.map((day, index) => {
           const dayKey = format(day, "yyyy-MM-dd");
           const dayTasks = tasksByDay.get(dayKey) || [];
-          const displayedTask = showAll ? dayTasks : dayTasks.slice(0, 3);
+          const displayedTask = dayTasks.slice(0, 3);
           const isCurrent = isSameMonth(day, currentMonth);
           const isTodayDate = isToday(day);
 
           return (
             <div
+              onClick={() => setSelectedDate(day)}
               key={index}
               className={`
-                 min-h-[80px] md:min-h-[130px] p-2 border border-zinc-800 flex flex-col
+                 cursor-pointer min-h-[80px] md:min-h-[130px] p-2 border bg-zinc-900  flex flex-col
                 ${
                   isTodayDate
-                    ? "bg-blue-900"
+                    ? " border-blue-700"
                     : isCurrent
-                      ? "bg-zinc-900"
+                      ? "border-zinc-800"
                       : "bg-zinc-950 text-zinc-600"
                 }
               `}
@@ -113,56 +128,29 @@ export function Calendar() {
 
               <div className="flex flex-col gap-1 overflow-visible">
                 {displayedTask.map((task) => {
-                  const late = getDaysRemaining(task?.due_date ?? '').includes(
-                    "Vencida",
-                  );
+                  const late = getDaysRemaining(task?.due_date ?? "") < 0;
                   return (
-                    <div className="relative group" key={task.id}>
-                      <div
-                        className={`
-                        ${late ? "bg-red-500/20 " : "bg-blue-500/20 "}
-                        text-white
-                        text-xs 
-                        px-1 
-                        py-1 
-                        rounded-md 
-                        truncate
-                        h-6
-                      `}
-                      >
-                        {task.title}
-                      </div>
-
-                      <div
-                        className={`
-                        absolute left-0 top-0
-                        hidden group-hover:block
-                        z-50
-                        ${late ? "bg-red-900 " : "bg-blue-900 "}
-                        text-white
-                        text-xs
-                        px-3 py-2
-                        rounded-lg
-                        shadow-xl
-                        w-max max-w-[220px]
-                        whitespace-normal
-                        break-words
-                        scale-95 group-hover:scale-100
-                        transition-all duration-150
+                    <div
+                      key={task.id}
+                      className={`
+                          ${late ? "bg-red-500/20" : "bg-blue-500/20"}
+                          text-white
+                          text-xs
+                          px-1
+                          py-1
+                          rounded-md
+                          truncate
+                          h-6
                         `}
-                      >
-                        {task.title}
-                      </div>
+                    >
+                      {task.title}
                     </div>
                   );
                 })}
 
                 {dayTasks.length > 3 && (
-                  <div
-                    onClick={() => setShowAll(!showAll)}
-                    className="cursor-pointer text-[11px] text-zinc-500"
-                  >
-                    {showAll ? "show less" : "show more"}
+                  <div className="text-[11px] text-zinc-500">
+                    +{dayTasks.length - 3} more
                   </div>
                 )}
               </div>
@@ -170,6 +158,51 @@ export function Calendar() {
           );
         })}
       </div>
+      {selectedDate && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn"
+          onClick={() => setSelectedDate(null)}
+        >
+          <div
+            className="bg-zinc-900 p-6 rounded-2xl w-[360px] max-h-[75vh] overflow-y-auto shadow-2xl border border-zinc-800 transform transition-all duration-1 00 scale-100 opacity-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold mb-4">
+              {format(selectedDate, "MMMM d, yyyy")}
+            </h3>
+
+            {(tasksByDay.get(format(selectedDate, "yyyy-MM-dd")) || [])
+              .sort(
+                (a, b) =>
+                  new Date(a.due_date!).getTime() -
+                  new Date(b.due_date!).getTime(),
+              )
+              .map((task) => {
+                const late = getDaysRemaining(task?.due_date ?? "") < 0;
+
+                return (
+                  <div
+                    key={task.id}
+                    className={`
+                mb-2 p-3 rounded-lg text-sm transition
+                ${late ? "bg-red-900/40" : "bg-zinc-800"}
+              `}
+                  >
+                    <div className="font-medium text-blue-400">
+                      {format(new Date(task.due_date!), "HH:mm")}
+                    </div>
+                    <div className="text-zinc-300">{task.title}</div>
+                  </div>
+                );
+              })}
+
+            {(tasksByDay.get(format(selectedDate, "yyyy-MM-dd")) || [])
+              .length === 0 && (
+              <div className="text-zinc-500 text-sm">No tasks for this day</div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

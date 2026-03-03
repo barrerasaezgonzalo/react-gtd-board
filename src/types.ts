@@ -48,6 +48,7 @@ export interface CardViewModel {
   title: string;
   date: string;
   dueDate?: string;
+  remainingDays?: number;
   text?: string;
   cta?: string;
   ctaAction?: () => void;

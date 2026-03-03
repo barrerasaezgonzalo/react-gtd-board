@@ -6,6 +6,7 @@ import { EditModalProps, ActionParams } from "@/types";
 import { useActions } from "@/context/ActionContext";
 import { useFilePreview } from "@/hooks/useFilePreview";
 import { useAutoResizeTextarea } from "@/hooks/useAutoResizeTextarea";
+import { format } from "date-fns";
 
 export function EditModal({ item, onClose, saving }: EditModalProps) {
   const [isVisible, setIsVisible] = useState(false);
@@ -13,11 +14,14 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
   const [errorFallback, setErrorFallback] = useState<string | null>(null);
   const [formData, setFormData] = useState<ActionParams>({
     title: item.title,
-    due_date: item.due_date ? item.due_date.split("T")[0] : undefined,
+    due_date: item.due_date
+      ? format(new Date(item.due_date), "yyyy-MM-dd'T'HH:mm")
+      : "",
     status: item.status,
     text: item.text,
     urgent: item.urgent,
   });
+
   const textareaRef = useAutoResizeTextarea(formData.text);
   const modalRef = useRef<HTMLDivElement>(null);
   const isFormValid =
@@ -125,7 +129,7 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
             </label>
             <input
               name="due_date"
-              type="date"
+              type="datetime-local"
               value={formData.due_date ?? ""}
               onChange={handleChange}
               className={`

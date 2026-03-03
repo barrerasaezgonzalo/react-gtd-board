@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Rocket } from "lucide-react";
 import { Card } from "../ui/Card";
 import { Capture } from "../ui/Capture";
 import { Title } from "../ui/Title";
 import { useActions } from "@/context/ActionContext";
-import { formatDate, getDaysRemaining } from "@/lib/utils";
+import { formatDate, getDaysRemaining, sortActions } from "@/lib/utils";
 import { EditModal } from "../ui/EditModal";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import { MAX_ITEMS_PER_PAGE } from "@/constants";
@@ -20,9 +20,13 @@ export function NextActions() {
   const { actions, loading, saving, updateAction, deleteAction } = useActions();
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [itemToComplete, setItemToComplete] = useState<string | null>(null);
-  const nextActions = actions.filter(
-    (action) => action.status === "nextActions",
-  );
+  const nextActions = useMemo(() => {
+    const filtered = actions.filter(
+      (action) => action.status === "nextActions",
+    );
+
+    return sortActions(filtered);
+  }, [actions]);
   const displayedActions = showAll
     ? nextActions
     : nextActions.slice(0, MAX_ITEMS_PER_PAGE);
@@ -58,7 +62,8 @@ export function NextActions() {
             onEdit: () => setEditingItem(action),
             onRemove: () => setItemToDelete(action.id),
             date: formatDate(action.created_at ?? ""),
-            dueDate: `${getDaysRemaining(action.due_date ?? "")} ${formatDate(action.due_date ?? "")}`,
+            remainingDays: getDaysRemaining(action.due_date ?? ""),
+            dueDate: `${formatDate(action.due_date ?? "")}`,
             text: action.text,
             cta: "Mark as Done",
             ctaAction: () => setItemToComplete(action.id),
