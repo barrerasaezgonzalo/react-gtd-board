@@ -267,7 +267,7 @@ Opciones compatibles:
 
 ## Repositorio
 
-- URL: `https://github.com/barrerasaezgonzalo/react-gtd-board` (actualiza con tu repo real)
+- URL: `https://github.com/barrerasaezgonzalo/react-gtd-board`
 - Branch principal sugerida: `main`
 
 ## Licencia
