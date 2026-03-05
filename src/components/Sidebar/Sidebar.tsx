@@ -8,10 +8,9 @@ import {
   StickyNote,
   CalendarDays,
   KanbanSquare,
-  ClipboardCheck,
-  ActivitySquare,
   FolderKanban,
   Archive,
+  CircleUserRound,
 } from "lucide-react";
 import { useActions } from "@/context/ActionContext";
 import { useAuth } from "@/context/AuthContext";
@@ -19,6 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 export function Sidebar({ setActiveView, activeView }: SidebarProps) {
   const { actions } = useActions();
   const { user } = useAuth();
+  const userHandle = (user?.email?.split("@")[0] ?? "user").slice(0, 18);
 
   const getCount = (status: ActionStatus) => {
     return actions.filter((action) => action.status === status).length;
@@ -65,18 +65,18 @@ export function Sidebar({ setActiveView, activeView }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-80 h-screen bg-zinc-900/50 border-r border-zinc-800/60 flex flex-col">
-      <div className="flex items-center px-6 border-b border-zinc-800/60">
+    <aside className="w-80 h-full bg-white/75 backdrop-blur-md border-r border-slate-200/80 flex flex-col">
+      <div className="flex items-center px-6 border-b border-slate-200/80">
         <Image
-          src="/logo.jpg"
+          src="/logo.webp"
           alt="Logo"
           width={350}
           height={350}
           className="py-2 w-[300px]"
         />
       </div>
-      <small className="h-14 flex items-center px-6 text-zinc-500 border-b border-zinc-700/60">
-        User: {user?.email}
+      <small className="h-14 flex items-center gap-2 px-6 text-slate-500 border-b border-slate-200/80">
+        <CircleUserRound size={15} className="text-slate-400" />@{userHandle}
       </small>
 
       <nav className="px-4 py-6 space-y-1 text-sm">
@@ -95,8 +95,8 @@ export function Sidebar({ setActiveView, activeView }: SidebarProps) {
               }}
               className={`w-full cursor-pointer flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200  ${
                 isActive
-                  ? "bg-blue-500/10 text-blue-400 font-semibold border border-blue-500/20"
-                  : "text-zinc-400 hover:bg-zinc-800/50 hover:text-sky-400 border border-zinc-800"
+                  ? "bg-sky-100 text-sky-700 font-semibold border border-sky-300"
+                  : "text-slate-600 hover:bg-sky-50 hover:text-slate-800 border border-slate-200"
               }`}
             >
               <div className="flex items-center gap-3">
@@ -106,7 +106,9 @@ export function Sidebar({ setActiveView, activeView }: SidebarProps) {
               {currentCount > 0 && (
                 <span
                   className={`text-xs px-1.5 py-0.5 rounded ${
-                    isActive ? "bg-blue-500/20" : "bg-zinc-800 text-zinc-500"
+                    isActive
+                      ? "bg-sky-200/80 text-sky-700"
+                      : "bg-slate-100 text-slate-600"
                   }`}
                 >
                   {currentCount}
@@ -118,37 +120,23 @@ export function Sidebar({ setActiveView, activeView }: SidebarProps) {
       </nav>
 
       <div className="mt-auto px-4 pb-4 md:hidden">
-        <p className="text-[10px] uppercase tracking-wide text-zinc-500 mb-2">
+        <p className="text-[10px] uppercase tracking-wide text-slate-500 mb-2">
           Quick Access
         </p>
         <div className="grid grid-cols-4 gap-2">
           <button
             onClick={() => setActiveView("calendar")}
-            className="flex flex-col items-center justify-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900/60 py-2 text-zinc-300 hover:border-sky-600 hover:text-sky-300 transition"
+            className="flex flex-col items-center justify-center gap-1 rounded-lg border border-sky-200 bg-white/80 py-2 text-sky-700 hover:border-sky-400 hover:text-sky-800 transition"
           >
             <CalendarDays size={16} />
             <span className="text-[10px]">Calendar</span>
           </button>
           <button
             onClick={() => setActiveView("kanban")}
-            className="flex flex-col items-center justify-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900/60 py-2 text-zinc-300 hover:border-violet-600 hover:text-violet-300 transition"
+            className="flex flex-col items-center justify-center gap-1 rounded-lg border border-amber-200 bg-white/80 py-2 text-amber-700 hover:border-amber-400 hover:text-amber-800 transition"
           >
             <KanbanSquare size={16} />
             <span className="text-[10px]">Kanban</span>
-          </button>
-          <button
-            onClick={() => setActiveView("weeklyReview")}
-            className="flex flex-col items-center justify-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900/60 py-2 text-zinc-300 hover:border-cyan-600 hover:text-cyan-300 transition"
-          >
-            <ClipboardCheck size={16} />
-            <span className="text-[10px]">Review</span>
-          </button>
-          <button
-            onClick={() => setActiveView("systemHealth")}
-            className="flex flex-col items-center justify-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900/60 py-2 text-zinc-300 hover:border-emerald-600 hover:text-emerald-300 transition"
-          >
-            <ActivitySquare size={16} />
-            <span className="text-[10px]">Health</span>
           </button>
         </div>
       </div>

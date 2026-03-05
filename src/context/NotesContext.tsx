@@ -8,18 +8,8 @@ import React, {
   useState,
 } from "react";
 import { supabase } from "@/lib/supabase";
-import { Note } from "@/types";
+import { Note, NotesContextType } from "@/types";
 import { useAuth } from "./AuthContext";
-
-type NotesContextType = {
-  notes: Note[];
-  loading: boolean;
-  addNote: () => Promise<Note | undefined>;
-  editNote: (id: string, content: string) => Promise<void>;
-  deleteNote: (id: string) => Promise<void>;
-  togglePinned: (id: string) => Promise<void>;
-  refreshNotes: () => Promise<void>;
-};
 
 export const NotesContext = createContext<NotesContextType | undefined>(
   undefined,

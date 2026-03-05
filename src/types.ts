@@ -1,29 +1,26 @@
-export interface ActionContextType {
-  actions: Action[];
-  loading: boolean;
-  saving: boolean;
-  refreshActions: () => Promise<void>;
-  deleteAction: (id: string) => Promise<void>;
-  addCapture: (value: string) => Promise<void>;
-  updateAction: (params: UpdateActionParams) => Promise<void>;
-}
+import type { ReactNode } from "react";
+import type { User } from "@supabase/supabase-js";
+import type { LucideIcon } from "lucide-react";
+
+// Domain
 export type Context = "all" | "work" | "home";
 export type Energy = "low" | "medium" | "high";
 export type EnergyFilter = Energy | "all";
+
 export type ActionStatus =
   | "nextActions"
   | "backLog"
   | "waiting"
   | "done"
   | "someday";
+
 export type ActiveView =
   | ActionStatus
   | "notes"
   | "calendar"
   | "kanban"
-  | "projects"
-  | "weeklyReview"
-  | "systemHealth";
+  | "projects";
+
 export type AccentTone =
   | "next"
   | "waiting"
@@ -48,30 +45,32 @@ export interface Action {
 
 export type ActionParams = Partial<Omit<Action, "id" | "created_at">>;
 
+export type Note = {
+  id: string;
+  content: string;
+  pinned: boolean;
+};
+
+export interface Project {
+  id: string;
+  user_id: string;
+  name: string;
+  color: string;
+  is_active: boolean;
+  created_at?: string;
+}
+
+// Component/View models
 export interface UpdateActionParams {
   id: string;
   updates: ActionParams;
-}
-
-export interface EditModalProps {
-  item: Action;
-  onClose: () => void;
-  saving: boolean;
-}
-
-export interface SidebarProps {
-  activeView: ActiveView;
-  setActiveView: (view: ActiveView) => void;
-}
-
-export interface ActionCardProps {
-  item: CardViewModel;
 }
 
 export interface CardViewModel {
   accentTone?: AccentTone;
   urgent?: boolean;
   title: string;
+  context?: Context;
   projectName?: string;
   projectColor?: string;
   energy?: Energy | null;
@@ -86,17 +85,29 @@ export interface CardViewModel {
   file_urls?: string;
 }
 
+export interface ActionCardProps {
+  item: CardViewModel;
+}
+
+export interface EditModalProps {
+  item: Action;
+  onClose: () => void;
+  saving: boolean;
+}
+
+export interface SidebarProps {
+  activeView: ActiveView;
+  setActiveView: (view: ActiveView) => void;
+}
+
 export interface HeaderProps {
   openSidebar?: () => void;
   onNavigateToView?: (view: ActiveView) => void;
   onSearchSubmit?: (query: string) => void;
-  onOpenWeeklyReview?: () => void;
+  searchQuery?: string;
   onOpenCalendar?: () => void;
   onOpenKanban?: () => void;
-  onOpenSystemHealth?: () => void;
 }
-
-import type { LucideIcon } from "lucide-react";
 
 export interface TitleProps {
   title: string;
@@ -108,6 +119,10 @@ export interface TitleProps {
   setSelectedEnergy?: (selectedEnergy: EnergyFilter) => void;
 }
 
+export interface AuthGateProps {
+  onLogin: () => Promise<void> | void;
+}
+
 export interface ConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -117,12 +132,6 @@ export interface ConfirmModalProps {
   variant?: "danger" | "success";
 }
 
-export type Note = {
-  id: string;
-  content: string;
-  pinned: boolean;
-};
-
 export type Rect = {
   top: number;
   left: number;
@@ -130,53 +139,59 @@ export type Rect = {
   height: number;
 };
 
-export interface userMenu {
-  id: string;
-  slug: string;
-  label: string;
-  url: string;
-  user_id: string;
+// Contexts
+export interface ActionContextType {
+  actions: Action[];
+  loading: boolean;
+  saving: boolean;
+  refreshActions: () => Promise<void>;
+  deleteAction: (id: string) => Promise<void>;
+  addCapture: (value: string) => Promise<void>;
+  updateAction: (params: UpdateActionParams) => Promise<void>;
 }
 
-export interface Project {
-  id: string;
-  user_id: string;
-  name: string;
-  color: string;
-  is_active: boolean;
-  created_at?: string;
+export interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export interface ProjectsContextType {
   projects: Project[];
   loading: boolean;
   addProject: (params: { name: string; color?: string }) => Promise<void>;
+  updateProject: (
+    id: string,
+    updates: { name?: string; color?: string },
+  ) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   refreshProjects: () => Promise<void>;
 }
 
-export interface WeeklyReviewStep {
-  id: string;
-  title: string;
-  description: string;
-  done: boolean;
-}
+export type NotesContextType = {
+  notes: Note[];
+  loading: boolean;
+  addNote: () => Promise<Note | undefined>;
+  editNote: (id: string, content: string) => Promise<void>;
+  deleteNote: (id: string) => Promise<void>;
+  togglePinned: (id: string) => Promise<void>;
+  refreshNotes: () => Promise<void>;
+};
 
-export interface WeeklyReview {
-  id: string;
-  user_id: string;
-  week_start: string;
-  steps: WeeklyReviewStep[];
-  completed: boolean;
-  completed_at?: string | null;
-  created_at?: string;
-}
+// Composed helpers
+export type CardBuilderHelpers = {
+  openEdit: (actionOverride?: Action) => void;
+  openDelete: () => void;
+};
 
-export interface WeeklyReviewContextType {
-  review: WeeklyReview | null;
+export interface ActionListViewProps {
+  titleProps: TitleProps;
+  actions: Action[];
   loading: boolean;
   saving: boolean;
-  toggleStep: (stepId: string) => Promise<void>;
-  resetWeekReview: () => Promise<void>;
-  refreshReview: () => Promise<void>;
+  viewAllLabel: string;
+  onDeleteAction: (id: string) => Promise<void>;
+  buildCardItem: (action: Action, helpers: CardBuilderHelpers) => CardViewModel;
+  extraModals?: ReactNode;
 }

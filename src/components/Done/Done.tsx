@@ -14,21 +14,23 @@ export function Done({ searchQuery = "" }: { searchQuery?: string }) {
   );
 
   return (
-    <ActionListView
-      titleProps={{ title: "Done", icon: CheckCheck, accentTone: "done" }}
-      actions={dones}
-      loading={loading}
-      saving={saving}
-      viewAllLabel="done"
-      onDeleteAction={deleteAction}
-      buildCardItem={(action, { openDelete, openEdit }) => ({
-        urgent: action.urgent,
-        title: action.title,
-        onEdit: () => openEdit(),
-        onRemove: openDelete,
-        date: formatDate(action.created_at ?? ""),
-        text: action.text,
-      })}
-    />
+    <div className="space-y-3">
+      <ActionListView
+        titleProps={{ title: "Done", icon: CheckCheck, accentTone: "done" }}
+        actions={dones}
+        loading={loading}
+        saving={saving}
+        viewAllLabel="done"
+        onDeleteAction={deleteAction}
+        buildCardItem={(action, { openDelete, openEdit }) => ({
+          urgent: action.urgent,
+          title: action.title,
+          onEdit: () => openEdit(),
+          onRemove: openDelete,
+          date: formatDate(action.created_at ?? ""),
+          text: action.text,
+        })}
+      />
+    </div>
   );
 }

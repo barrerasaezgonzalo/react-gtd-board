@@ -12,12 +12,13 @@ export function filterNextActionsByContext(
 ) {
   return actions.filter((action) => {
     if (action.status !== "nextActions") return false;
+    const normalizedContext = action.context ?? "home";
 
     if (selectedContext === "all") {
-      return action.context === "work" || action.context === "home";
+      return true;
     }
 
-    return action.context === selectedContext;
+    return normalizedContext === selectedContext;
   });
 }
 

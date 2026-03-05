@@ -31,44 +31,46 @@ export function NextActions({ searchQuery = "" }: { searchQuery?: string }) {
   };
 
   return (
-    <ActionListView
-      titleProps={{
-        title: "Next Actions",
-        icon: Rocket,
-        accentTone: "next",
-        selectedContext,
-        setSelectedContext,
-        selectedEnergy,
-        setSelectedEnergy,
-      }}
-      actions={nextActions}
-      loading={loading}
-      saving={saving}
-      viewAllLabel="next actions"
-      onDeleteAction={deleteAction}
-      buildCardItem={(action, { openDelete, openEdit }) => ({
-        file_urls: action.file_urls ?? "",
-        urgent: action.urgent,
-        energy: action.energy ?? null,
-        title: action.title,
-        onEdit: () => openEdit(),
-        onRemove: openDelete,
-        date: formatDate(action.created_at ?? ""),
-        remainingDays: getDaysRemaining(action.due_date ?? ""),
-        dueDate: `${formatDate(action.due_date ?? "")}`,
-        text: action.text,
-        cta: "Mark as Done",
-        ctaAction: () => setItemToComplete(action.id),
-      })}
-      extraModals={
-        <ConfirmModal
-          isOpen={!!itemToComplete}
-          onClose={() => setItemToComplete(null)}
-          onConfirm={handleMarkAsDone}
-          title="Done Action"
-          message="Do you want to mark this action as done?"
-        />
-      }
-    />
+    <div className="space-y-3">
+      <ActionListView
+        titleProps={{
+          title: "Next Actions",
+          icon: Rocket,
+          accentTone: "next",
+          selectedContext,
+          setSelectedContext,
+          selectedEnergy,
+          setSelectedEnergy,
+        }}
+        actions={nextActions}
+        loading={loading}
+        saving={saving}
+        viewAllLabel="next actions"
+        onDeleteAction={deleteAction}
+        buildCardItem={(action, { openDelete, openEdit }) => ({
+          file_urls: action.file_urls ?? "",
+          urgent: action.urgent,
+          energy: action.energy ?? null,
+          title: action.title,
+          onEdit: () => openEdit(),
+          onRemove: openDelete,
+          date: formatDate(action.created_at ?? ""),
+          remainingDays: getDaysRemaining(action.due_date ?? ""),
+          dueDate: `${formatDate(action.due_date ?? "")}`,
+          text: action.text,
+          cta: "Mark as Done",
+          ctaAction: () => setItemToComplete(action.id),
+        })}
+        extraModals={
+          <ConfirmModal
+            isOpen={!!itemToComplete}
+            onClose={() => setItemToComplete(null)}
+            onConfirm={handleMarkAsDone}
+            title="Done Action"
+            message="Do you want to mark this action as done?"
+          />
+        }
+      />
+    </div>
   );
 }

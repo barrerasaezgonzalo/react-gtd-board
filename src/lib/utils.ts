@@ -1,13 +1,39 @@
 import type { Action } from "../types";
 
+type TimestampParts = {
+  year: string;
+  month: string;
+  day: string;
+  hour: string;
+  minute: string;
+};
+
+function getTimestampParts(value: string): TimestampParts | null {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T])(\d{2}):(\d{2})/);
+  if (!match) return null;
+
+  return {
+    year: match[1],
+    month: match[2],
+    day: match[3],
+    hour: match[4],
+    minute: match[5],
+  };
+}
+
 export const formatDate = (dateString: string): string => {
   if (!dateString) return "";
 
+  const parts = getTimestampParts(dateString);
+  if (parts) {
+    return `${parts.day}/${parts.month}/${parts.year} ${parts.hour}:${parts.minute}`;
+  }
+
   const date = new Date(dateString);
 
-  const day = String(date.getUTCDate()).padStart(2, "0");
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-  const year = date.getUTCFullYear();
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
   const hours = String(date.getHours()).padStart(2, "0");
   const minuts = String(date.getMinutes()).padStart(2, "0");
 
@@ -17,23 +43,57 @@ export const formatDate = (dateString: string): string => {
 export const getDaysRemaining = (targetDateString: string): number => {
   if (!targetDateString) return 0;
 
-  const targetDate = new Date(targetDateString);
   const today = new Date();
+  const parts = getTimestampParts(targetDateString);
+  const targetLocalDate = parts
+    ? new Date(Number(parts.year), Number(parts.month) - 1, Number(parts.day))
+    : (() => {
+        const targetDate = new Date(targetDateString);
+        return new Date(
+          targetDate.getFullYear(),
+          targetDate.getMonth(),
+          targetDate.getDate(),
+        );
+      })();
 
-  const targetUTC = Date.UTC(
-    targetDate.getUTCFullYear(),
-    targetDate.getUTCMonth(),
-    targetDate.getUTCDate(),
-  );
-  const todayUTC = Date.UTC(
+  const todayLocalDate = new Date(
     today.getFullYear(),
     today.getMonth(),
     today.getDate(),
   );
 
-  const diffTime = targetUTC - todayUTC;
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const diffTime = targetLocalDate.getTime() - todayLocalDate.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
   return diffDays;
+};
+
+export const toDateTimeLocalValue = (dateString: string): string => {
+  if (!dateString) return "";
+  const parts = getTimestampParts(dateString);
+  if (parts) {
+    return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+  }
+
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hour = String(date.getHours()).padStart(2, "0");
+  const minute = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hour}:${minute}`;
+};
+
+export const getDateKeyFromTimestamp = (dateString: string): string => {
+  const parts = getTimestampParts(dateString);
+  if (parts) {
+    return `${parts.year}-${parts.month}-${parts.day}`;
+  }
+
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
 export function sortActions(actions: Action[]) {

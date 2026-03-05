@@ -43,8 +43,6 @@ Aplicacion GTD (Getting Things Done) con Next.js + Supabase.
 - Calendar
 - Notes
 - Projects
-- Weekly Review (wizard)
-- System Health (dashboard)
 
 ### Navegacion
 
@@ -53,8 +51,6 @@ Aplicacion GTD (Getting Things Done) con Next.js + Supabase.
   - Search global en vivo
   - Calendar
   - Kanban
-  - Weekly Review
-  - System Health
   - Logout
 - Sidebar (mobile):
   - quick actions para Calendar/Kanban/Review/Health al final
@@ -71,26 +67,6 @@ Aplicacion GTD (Getting Things Done) con Next.js + Supabase.
   - Kanban
   - Calendar
 - Boton `X` para limpiar
-
-### System Health
-
-- KPIs:
-  - Backlog sin procesar
-  - Waiting estancadas (+7 dias aprox)
-  - Atrasadas
-  - Proximas 7 dias
-  - Proyectos (cantidad)
-  - Weekly Review (al dia / pendiente)
-- Health Score (0-100) con semaforo
-
-### Weekly Review
-
-- Checklist semanal persistido en Supabase
-- Wizard:
-  - Prev
-  - Next step
-  - Done/Undo por paso
-  - Reset
 
 ### Projects
 
@@ -193,50 +169,7 @@ using (auth.uid() = user_id);
 commit;
 ```
 
-### 2) Weekly Review
-
-```sql
-begin;
-
-create table if not exists public.weekly_reviews (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  week_start date not null,
-  steps jsonb not null default '[]'::jsonb,
-  completed boolean not null default false,
-  completed_at timestamptz null,
-  created_at timestamptz not null default now()
-);
-
-create unique index if not exists weekly_reviews_user_week_unique
-  on public.weekly_reviews (user_id, week_start);
-
-create index if not exists weekly_reviews_user_idx
-  on public.weekly_reviews (user_id);
-
-alter table public.weekly_reviews enable row level security;
-
-create policy "weekly_reviews_select_own"
-on public.weekly_reviews for select to authenticated
-using (auth.uid() = user_id);
-
-create policy "weekly_reviews_insert_own"
-on public.weekly_reviews for insert to authenticated
-with check (auth.uid() = user_id);
-
-create policy "weekly_reviews_update_own"
-on public.weekly_reviews for update to authenticated
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
-
-create policy "weekly_reviews_delete_own"
-on public.weekly_reviews for delete to authenticated
-using (auth.uid() = user_id);
-
-commit;
-```
-
-### 3) Energy en acciones
+### 2) Energy en acciones
 
 ```sql
 alter table public.gtd_actions

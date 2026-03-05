@@ -2,25 +2,30 @@ import { useMemo, useState } from "react";
 import {
   addMonths,
   subMonths,
-  startOfMonth,
-  endOfMonth,
-  startOfWeek,
-  endOfWeek,
-  addDays,
   format,
+  parse,
   isSameMonth,
   isToday,
 } from "date-fns";
+import { es } from "date-fns/locale";
 import { Action } from "@/types";
 import { useActions } from "@/context/ActionContext";
-import { actionMatchesQuery, getDaysRemaining } from "@/lib/utils";
+import {
+  actionMatchesQuery,
+  formatDate,
+  getDateKeyFromTimestamp,
+  getDaysRemaining,
+} from "@/lib/utils";
 import { Loading } from "../ui/Loading";
 import { Capture } from "../ui/Capture";
-import { Calendar1 } from "lucide-react";
+import { Title } from "../ui/Title";
+import { Calendar1, Clock3 } from "lucide-react";
 
 export function Calendar({ searchQuery = "" }: { searchQuery?: string }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const { actions, loading } = useActions();
+  const parseDateKey = (dateKey: string) =>
+    parse(dateKey, "yyyy-MM-dd", new Date());
 
   const nextActions = actions.filter(
     (action) =>
@@ -34,8 +39,7 @@ export function Calendar({ searchQuery = "" }: { searchQuery?: string }) {
     nextActions.forEach((task) => {
       if (!task.due_date) return;
 
-      const date = new Date(task.due_date);
-      const key = format(date, "yyyy-MM-dd");
+      const key = getDateKeyFromTimestamp(task.due_date);
 
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(task);
@@ -51,103 +55,146 @@ export function Calendar({ searchQuery = "" }: { searchQuery?: string }) {
     return map;
   }, [nextActions]);
 
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
-
-  const days: Date[] = [];
-  let day = startDate;
-
-  while (day <= endDate) {
-    days.push(day);
-    day = addDays(day, 1);
-  }
-
   if (loading) return <Loading />;
 
   return (
-    <div className="relative max-w-[1600px] mx-auto space-y-6 ">
+    <div className="relative max-w-[1600px] mx-auto space-y-6">
       <Capture />
+      <Title title="Calendar" icon={Calendar1} />
 
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="text-lg sm:text-xl md:text-2xl flex gap-2 items-center font-semibold tracking-wide uppercase">
-          <Calendar1 size={22} className="text-blue-400" />
-          {format(currentMonth, "MMMM yyyy")}
-        </h2>
+      <section className="rounded-2xl border border-sky-200 bg-white/80 backdrop-blur-sm px-4 py-4 sm:px-6 sm:py-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-base sm:text-lg md:text-xl font-semibold tracking-wide capitalize text-slate-900">
+            {format(currentMonth, "MMMM yyyy", { locale: es })}
+          </h2>
 
-        <div className="flex gap-2 sm:gap-4">
-          <button
-            onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-            className="px-2 sm:px-3 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition text-xs sm:text-sm"
-          >
-            {"<"}
-          </button>
-
-          <button
-            onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-            className="px-2 sm:px-3 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition text-xs sm:text-sm"
-          >
-            {">"}
-          </button>
-
-          <button
-            onClick={() => setCurrentMonth(new Date())}
-            className="px-2 sm:px-3 py-1 rounded-lg bg-blue-500/20 hover:bg-blue-900 transition text-xs sm:text-sm"
-          >
-            Today
-          </button>
+          <div className="flex gap-2 sm:gap-3">
+            <button
+              onClick={() => setCurrentMonth(new Date())}
+              className="cursor-pointer px-3 py-1.5 rounded-lg border border-sky-300 bg-sky-100 text-sky-700 hover:bg-sky-200 transition text-xs sm:text-sm font-medium"
+            >
+              Today
+            </button>
+            <button
+              onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+              className="cursor-pointer px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 transition text-xs sm:text-sm"
+            >
+              {"<"}
+            </button>
+            <button
+              onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+              className="cursor-pointer px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 transition text-xs sm:text-sm"
+            >
+              {">"}
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="block space-y-6">
+      <div className="block space-y-4">
         {Array.from(tasksByDay.entries())
-          .filter(([dateKey]) => isSameMonth(new Date(dateKey), currentMonth))
+          .filter(([dateKey]) =>
+            isSameMonth(parseDateKey(dateKey), currentMonth),
+          )
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([dateKey, tasks]) => {
-            const date = new Date(dateKey);
+            const date = parseDateKey(dateKey);
             const isTodayDate = isToday(date);
 
             return (
-              <div
+              <section
                 key={dateKey}
-                className={`rounded-xl p-4 border ${
+                className={`rounded-2xl border p-4 sm:p-5 shadow-sm ${
                   isTodayDate
-                    ? "border-blue-700 bg-zinc-900"
-                    : "border-zinc-800 bg-zinc-900"
+                    ? "border-sky-300 bg-sky-50/80"
+                    : "border-slate-200 bg-white/80"
                 }`}
               >
-                <div className="text-sm font-semibold mb-3">
-                  {format(date, "EEEE d MMMM")}
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm sm:text-base font-semibold text-slate-800 capitalize">
+                    {format(date, "EEEE d 'de' MMMM", { locale: es })}
+                  </h3>
+                  {isTodayDate && (
+                    <span className="text-[10px] uppercase tracking-wide font-bold rounded-full px-2 py-1 border border-sky-300 bg-sky-100 text-sky-700">
+                      Hoy
+                    </span>
+                  )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {tasks.map((task) => {
-                    const late = getDaysRemaining(task?.due_date ?? "") < 0;
+                    const remainingDays = getDaysRemaining(
+                      task?.due_date ?? "",
+                    );
+                    const isOverdue = remainingDays < 0;
+                    const isDueToday = remainingDays === 0;
 
                     return (
-                      <div
+                      <article
                         key={task.id}
-                        className={`p-3 rounded-lg text-sm ${
-                          late ? "bg-red-900/40" : "bg-zinc-800"
+                        className={`rounded-xl border px-3 py-3 ${
+                          isOverdue
+                            ? "border-rose-300 bg-rose-50"
+                            : isDueToday
+                              ? "border-amber-300 bg-amber-50/70"
+                              : "border-slate-200 bg-white"
                         }`}
                       >
-                        <div className="text-blue-400 text-xs mb-1">
-                          {format(new Date(task.due_date!), "HH:mm")}
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide">
+                            <Clock3
+                              size={13}
+                              className={
+                                isOverdue
+                                  ? "text-rose-400"
+                                  : isDueToday
+                                    ? "text-amber-500"
+                                    : "text-slate-600"
+                              }
+                            />
+                            <span
+                              className={
+                                isOverdue
+                                  ? "text-rose-500"
+                                  : isDueToday
+                                    ? "text-amber-600"
+                                    : "text-slate-700"
+                              }
+                            >
+                              {formatDate(task.due_date!)}
+                            </span>
+                          </div>
+                          <span
+                            className={`text-[11px] font-medium ${
+                              isOverdue
+                                ? "text-rose-500"
+                                : isDueToday
+                                  ? "text-amber-600"
+                                  : "text-slate-500"
+                            }`}
+                          >
+                            {isOverdue
+                              ? `Vencida ${Math.abs(remainingDays)} d`
+                              : isDueToday
+                                ? "Vence hoy"
+                                : `Quedan ${remainingDays} d`}
+                          </span>
                         </div>
-                        <div className="text-zinc-300">{task.title}</div>
-                      </div>
+                        <p className="text-sm text-slate-800 mt-1.5">
+                          {task.title}
+                        </p>
+                      </article>
                     );
                   })}
                 </div>
-              </div>
+              </section>
             );
           })}
 
         {Array.from(tasksByDay.keys()).filter((dateKey) =>
-          isSameMonth(new Date(dateKey), currentMonth),
+          isSameMonth(parseDateKey(dateKey), currentMonth),
         ).length === 0 && (
-          <div className="text-zinc-500 text-sm text-center py-10">
+          <div className="rounded-2xl border-2 border-dashed border-sky-200 bg-white/70 text-slate-500 text-sm text-center py-12">
             No upcoming tasks
           </div>
         )}

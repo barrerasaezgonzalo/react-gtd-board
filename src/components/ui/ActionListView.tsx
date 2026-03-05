@@ -1,8 +1,8 @@
 "use client";
 
-import { ReactNode, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { MAX_ITEMS_PER_PAGE } from "@/constants";
-import { Action, CardViewModel, TitleProps } from "@/types";
+import { Action, ActionListViewProps, CardViewModel } from "@/types";
 import { useProjects } from "@/context/ProjectsContext";
 import { Capture } from "./Capture";
 import { Title } from "./Title";
@@ -11,22 +11,6 @@ import { Card } from "./Card";
 import { EditModal } from "./EditModal";
 import { ConfirmModal } from "./ConfirmModal";
 import { Loading } from "./Loading";
-
-type CardBuilderHelpers = {
-  openEdit: (actionOverride?: Action) => void;
-  openDelete: () => void;
-};
-
-interface ActionListViewProps {
-  titleProps: TitleProps;
-  actions: Action[];
-  loading: boolean;
-  saving: boolean;
-  viewAllLabel: string;
-  onDeleteAction: (id: string) => Promise<void>;
-  buildCardItem: (action: Action, helpers: CardBuilderHelpers) => CardViewModel;
-  extraModals?: ReactNode;
-}
 
 export function ActionListView({
   titleProps,
@@ -49,16 +33,16 @@ export function ActionListView({
   const accentTone = titleProps.accentTone ?? "neutral";
   const viewAllToneClass =
     accentTone === "next"
-      ? "border-sky-700 text-sky-400 hover:text-sky-300 hover:border-sky-500 hover:bg-sky-950/20"
+      ? "border-sky-300 text-sky-700 hover:text-sky-800 hover:border-sky-400 hover:bg-sky-50"
       : accentTone === "waiting"
-        ? "border-amber-700 text-amber-400 hover:text-amber-300 hover:border-amber-500 hover:bg-amber-950/20"
+        ? "border-rose-300 text-rose-700 hover:text-rose-800 hover:border-rose-400 hover:bg-rose-50"
         : accentTone === "backlog"
-          ? "border-violet-700 text-violet-400 hover:text-violet-300 hover:border-violet-500 hover:bg-violet-950/20"
+          ? "border-amber-300 text-amber-700 hover:text-amber-800 hover:border-amber-400 hover:bg-amber-50"
           : accentTone === "someday"
-            ? "border-fuchsia-700 text-fuchsia-400 hover:text-fuchsia-300 hover:border-fuchsia-500 hover:bg-fuchsia-950/20"
+            ? "border-cyan-300 text-cyan-700 hover:text-cyan-800 hover:border-cyan-400 hover:bg-cyan-50"
             : accentTone === "done"
-              ? "border-emerald-700 text-emerald-400 hover:text-emerald-300 hover:border-emerald-500 hover:bg-emerald-950/20"
-              : "border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900/20";
+              ? "border-emerald-300 text-emerald-700 hover:text-emerald-800 hover:border-emerald-400 hover:bg-emerald-50"
+              : "border-slate-300 text-slate-600 hover:text-slate-800 hover:border-slate-400 hover:bg-slate-50";
 
   const displayedActions = useMemo(
     () => (showAll ? actions : actions.slice(0, MAX_ITEMS_PER_PAGE)),
@@ -91,6 +75,7 @@ export function ActionListView({
           : undefined;
         const item: CardViewModel = {
           accentTone,
+          context: action.context ?? "home",
           projectName: project?.name,
           projectColor: project?.color,
           ...baseItem,
@@ -104,7 +89,7 @@ export function ActionListView({
           onClick={() => setShowAll(true)}
           className={`w-full cursor-pointer py-4 border-2 border-dashed rounded-xl transition-all font-medium text-sm ${viewAllToneClass}`}
         >
-          + View all {viewAllLabel} ({actions.length})
+          + View all {viewAllLabel} ( +{actions.length - MAX_ITEMS_PER_PAGE} )
         </button>
       )}
 

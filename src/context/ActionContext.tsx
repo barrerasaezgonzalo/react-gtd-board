@@ -40,7 +40,12 @@ export function ActionProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
 
-      setActions(data ?? []);
+      const normalizedActions = (data ?? []).map((action) => ({
+        ...action,
+        context: action.context ?? "home",
+      }));
+
+      setActions(normalizedActions);
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
@@ -58,6 +63,7 @@ export function ActionProvider({ children }: { children: React.ReactNode }) {
           {
             title: capture.trim(),
             status: "backLog",
+            context: "home",
             urgent: false,
             user_id: userId,
           },
@@ -75,6 +81,21 @@ export function ActionProvider({ children }: { children: React.ReactNode }) {
 
   const updateAction = async ({ id, updates }: UpdateActionParams) => {
     if (!user) return;
+    const currentAction = actions.find((action) => action.id === id);
+    const targetStatus = updates.status ?? currentAction?.status;
+    const effectiveDueDate =
+      updates.due_date ?? currentAction?.due_date ?? null;
+    const hasDueDate =
+      typeof effectiveDueDate === "string"
+        ? effectiveDueDate.trim().length > 0
+        : !!effectiveDueDate;
+
+    if (targetStatus === "nextActions" && !hasDueDate) {
+      console.warn(
+        "Blocked update: due_date is required to move an action to nextActions.",
+      );
+      return;
+    }
 
     setSaving(true);
 

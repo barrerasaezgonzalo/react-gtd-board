@@ -17,31 +17,43 @@ const columns: {
   status: ActionStatus;
   title: string;
   toneClass: string;
+  titleClass: string;
+  badgeClass: string;
 }[] = [
   {
     status: "backLog",
     title: "Backlog",
-    toneClass: "border-violet-700/60 bg-violet-950/20",
+    toneClass: "border-amber-200 bg-amber-50/60",
+    titleClass: "text-amber-700",
+    badgeClass: "bg-amber-100 text-amber-700 border border-amber-200",
   },
   {
     status: "nextActions",
     title: "Next",
-    toneClass: "border-sky-700/60 bg-sky-950/20",
+    toneClass: "border-sky-200 bg-sky-50/60",
+    titleClass: "text-sky-700",
+    badgeClass: "bg-sky-100 text-sky-700 border border-sky-200",
   },
   {
     status: "waiting",
     title: "Waiting",
-    toneClass: "border-amber-700/60 bg-amber-950/20",
+    toneClass: "border-rose-200 bg-rose-50/60",
+    titleClass: "text-rose-700",
+    badgeClass: "bg-rose-100 text-rose-700 border border-rose-200",
   },
   {
     status: "done",
     title: "Done",
-    toneClass: "border-emerald-700/60 bg-emerald-950/20",
+    toneClass: "border-emerald-200 bg-emerald-50/60",
+    titleClass: "text-emerald-700",
+    badgeClass: "bg-emerald-100 text-emerald-700 border border-emerald-200",
   },
   {
     status: "someday",
     title: "Someday",
-    toneClass: "border-fuchsia-700/60 bg-fuchsia-950/20",
+    toneClass: "border-cyan-200 bg-cyan-50/60",
+    titleClass: "text-cyan-700",
+    badgeClass: "bg-cyan-100 text-cyan-700 border border-cyan-200",
   },
 ];
 
@@ -108,7 +120,7 @@ export function Kanban({ searchQuery = "" }: { searchQuery?: string }) {
 
     if (targetStatus === "nextActions" && !movingAction.due_date) {
       setBlockedMessage(
-        "No se puede mover a Next Actions sin due_date. Edita la tarea y agrega una fecha primero.",
+        "No se puede mover a Next Actions sin fecha de vencimiento. Edita la tarea y agrega una fecha primero.",
       );
       setTimeout(() => setBlockedMessage(null), 3000);
       return clearDragState();
@@ -127,15 +139,15 @@ export function Kanban({ searchQuery = "" }: { searchQuery?: string }) {
     <div className="max-w-[1600px] mx-auto space-y-6">
       <Capture />
 
-      <div className="flex items-center gap-2 border-b border-zinc-800/50 pb-2">
-        <KanbanSquare className="text-cyan-400" size={24} />
-        <h2 className="text-2xl font-bold uppercase tracking-widest text-white">
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+        <KanbanSquare className="text-sky-500" size={24} />
+        <h2 className="text-2xl font-bold uppercase tracking-widest text-slate-900">
           Kanban
         </h2>
       </div>
 
       {blockedMessage && (
-        <div className="rounded-lg border border-rose-700/70 bg-rose-950/30 px-4 py-2 text-sm text-rose-300">
+        <div className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-2 text-sm text-rose-700">
           {blockedMessage}
         </div>
       )}
@@ -157,26 +169,30 @@ export function Kanban({ searchQuery = "" }: { searchQuery?: string }) {
               onDragEnter={(e) => handleDragOverColumn(e, column.status)}
               onDragLeave={() => setDragOverStatus(null)}
               onDrop={() => handleDropOnColumn(column.status)}
-              className={`rounded-xl border p-2.5 min-h-[240px] transition ${column.toneClass} ${
+              className={`rounded-xl border p-2.5 min-h-[240px] transition shadow-sm ${column.toneClass} ${
                 isDragOver
                   ? isInvalidDrop
-                    ? "ring-2 ring-rose-500 border-rose-600"
-                    : "ring-2 ring-cyan-500 border-cyan-500"
+                    ? "ring-2 ring-rose-400 border-rose-400"
+                    : "ring-2 ring-sky-400 border-sky-400"
                   : ""
               }`}
             >
               <header className="flex items-center justify-between mb-2">
-                <h3 className="text-xs uppercase tracking-wide font-semibold text-zinc-200">
+                <h3
+                  className={`text-xs uppercase tracking-wide font-semibold ${column.titleClass}`}
+                >
                   {column.title}
                 </h3>
-                <span className="text-[11px] text-zinc-400 bg-zinc-900/70 px-2 py-0.5 rounded-md">
+                <span
+                  className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${column.badgeClass}`}
+                >
                   {list.length}
                 </span>
               </header>
 
               <div className="space-y-2">
                 {list.length === 0 && (
-                  <p className="text-xs text-zinc-500 py-3">No tasks</p>
+                  <p className="text-xs text-slate-400 py-3">No tasks</p>
                 )}
 
                 {list.map((action) => {
@@ -190,24 +206,24 @@ export function Kanban({ searchQuery = "" }: { searchQuery?: string }) {
                       draggable
                       onDragStart={(e) => handleDragStart(e, action.id)}
                       onDragEnd={clearDragState}
-                      className={`rounded-lg border border-zinc-700/70 bg-zinc-900/80 p-2.5 cursor-grab active:cursor-grabbing ${
+                      className={`rounded-lg border border-slate-200 bg-white p-2.5 cursor-grab active:cursor-grabbing shadow-sm ${
                         draggingId === action.id ? "opacity-60" : ""
                       }`}
                     >
-                      <p className="text-sm text-zinc-100 font-medium break-words">
+                      <p className="text-sm text-slate-900 font-medium break-words">
                         {action.title}
                       </p>
                       {action.due_date && remainingDays !== null && (
                         <div className="mt-2 text-[11px]">
-                          <p className="text-zinc-400">
+                          <p className="text-slate-500">
                             Due: {formatDate(action.due_date)}
                           </p>
                           <p
                             className={
                               remainingDays < 0
                                 ? "text-rose-400"
-                                : remainingDays < 1
-                                  ? "text-amber-400"
+                                : remainingDays === 0
+                                  ? "text-amber-500"
                                   : "text-emerald-400"
                             }
                           >
@@ -215,18 +231,20 @@ export function Kanban({ searchQuery = "" }: { searchQuery?: string }) {
                               ? `Vencida (${Math.abs(
                                   Math.ceil(remainingDays),
                                 )} dia(s))`
-                              : `Quedan ${Math.ceil(remainingDays)} dia(s)`}
+                              : remainingDays === 0
+                                ? "Vence hoy"
+                                : `Quedan ${Math.ceil(remainingDays)} dia(s)`}
                           </p>
                         </div>
                       )}
                       {action.text?.trim() && (
-                        <p className="text-xs text-zinc-400 mt-1 line-clamp-3 whitespace-pre-wrap">
+                        <p className="text-xs text-slate-500 mt-1 line-clamp-3 whitespace-pre-wrap">
                           {action.text}
                         </p>
                       )}
                       {!action.due_date && (
                         <p className="text-[11px] text-amber-400 mt-2">
-                          Sin due_date
+                          Sin Fecha de vencimiento
                         </p>
                       )}
                     </article>

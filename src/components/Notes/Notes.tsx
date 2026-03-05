@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Bookmark, StickyNote, Trash, X } from "lucide-react";
+import { Bookmark, Plus, StickyNote, Trash, X } from "lucide-react";
 import { Rect } from "@/types";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import { EmptyState } from "../ui/EmptyState";
@@ -8,7 +8,11 @@ import { useNotes } from "@/context/NotesContext";
 import { Loading } from "../ui/Loading";
 import { Capture } from "../ui/Capture";
 
-export function Notes() {
+export function Notes({
+  searchQuery: externalSearchQuery = "",
+}: {
+  searchQuery?: string;
+}) {
   const { notes, editNote, deleteNote, addNote, togglePinned, loading } =
     useNotes();
   const [selected, setSelected] = useState<string | null>(null);
@@ -18,15 +22,14 @@ export function Notes() {
   const modalRef = useRef<HTMLDivElement | null>(null);
   const selectedNote = notes.find((n) => n.id === selected);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const sortedNotes = useMemo(() => {
     return notes
       .filter((n) =>
-        n.content.toLowerCase().includes(searchQuery.toLowerCase()),
+        n.content.toLowerCase().includes(externalSearchQuery.toLowerCase()),
       )
       .sort((a, b) => Number(b.pinned) - Number(a.pinned));
-  }, [notes, searchQuery]);
+  }, [notes, externalSearchQuery]);
 
   function handleEdit(id: string, value: string) {
     editNote(id, value);
@@ -59,6 +62,7 @@ export function Notes() {
           elEmptyNote.style.borderColor = originalBorderColor;
         }, 1000);
       }
+      setTimeout(() => openNote(emptyNote.id), 0);
       return;
     }
     const newNote = await addNote();
@@ -142,24 +146,18 @@ export function Notes() {
         }`}
       >
         <Capture />
-        <div className="flex items-center justify-between pb-2 border-b border-zinc-800/50">
-          <h2 className="text-2xl font-bold uppercase tracking-widest text-white flex items-center gap-2">
-            <StickyNote size={25} className="text-blue-400" />
+        <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+          <h2 className="text-2xl font-bold uppercase tracking-widest text-slate-900 flex items-center gap-2">
+            <StickyNote size={25} className="text-amber-500" />
             Notes
           </h2>
 
           <div className="flex items-center gap-3">
-            <input
-              type="text"
-              placeholder="Search notes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="text-xs bg-zinc-800/50 border border-zinc-700 rounded px-3 py-1.5 text-zinc-200 focus:outline-none focus:border-blue-500/50 transition w-35 md:w-64"
-            />
             <button
               onClick={handleAddNote}
-              className="text-xs px-3 py-1.5 rounded-lg cursor-pointer transition border border-2 border-blue-600 hover:bg-blue-900 text-white whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-sky-200 px-2.5 py-1.5 text-xs font-medium text-sky-700 hover:border-sky-400 hover:text-sky-800 transition whitespace-nowrap cursor-pointer"
             >
+              <Plus size={14} />
               New note
             </button>
           </div>
@@ -174,9 +172,10 @@ export function Notes() {
                 if (el) refs.current[note.id] = el;
               }}
               onClick={() => openNote(note.id)}
-              className={`min-h-52 rounded-lg border ${note.pinned ? "border-yellow-400" : "border-zinc-700"} bg-zinc-900 cursor-pointer hover:border-zinc-500 transition-all duration-200 p-5 text-sm text-zinc-300 whitespace-pre-wrap line-clamp-6`}
+              className={`relative overflow-hidden min-h-52 rounded-lg border ${note.pinned ? "border-amber-400" : "border-amber-200"} bg-amber-100 cursor-pointer hover:border-amber-400 transition-all duration-200 p-5 text-sm text-amber-900 whitespace-pre-wrap line-clamp-6 shadow-sm`}
             >
               {note.content}
+              <span className="pointer-events-none absolute bottom-0 right-0 h-0 w-0 border-l-[18px] border-l-transparent border-t-[18px] border-t-amber-200" />
             </div>
           ))}
         </div>
@@ -186,7 +185,7 @@ export function Notes() {
         <>
           <div
             onClick={closeNote}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-slate-900/35 backdrop-blur-sm z-40"
           />
 
           <div
@@ -201,17 +200,17 @@ export function Notes() {
                 "all 300ms cubic-bezier(0.4, 0, 0.2, 1), border-radius 200ms",
               boxSizing: "border-box",
             }}
-            className={`z-50 bg-zinc-900 ${selectedNote?.pinned ? "border border-yellow-400" : "border border-zinc-700"}  shadow-2xl overflow-hidden`}
+            className={`z-50 relative bg-amber-100 ${selectedNote?.pinned ? "border border-amber-400" : "border border-amber-200"} shadow-2xl overflow-hidden`}
           >
             <div
               className={`h-full flex flex-col transition-opacity duration-200 ${
                 isOpen ? "opacity-100 delay-150" : "opacity-0 "
               }`}
             >
-              <div className="h-12 flex items-center justify-between px-4 border-b border-zinc-800">
+              <div className="h-12 flex items-center justify-between px-4 border-b border-amber-200">
                 <button
                   onClick={closeNote}
-                  className="p-1 rounded hover:bg-zinc-800 transition"
+                  className="p-1 rounded hover:bg-amber-200 transition text-amber-800"
                 >
                   <X size={20} />
                 </button>
@@ -221,12 +220,12 @@ export function Notes() {
                     size={18}
                     onClick={handleTogglePinned}
                     className={`cursor-pointer transition ${
-                      selectedNote?.pinned ? "text-yellow-400" : "text-zinc-500"
+                      selectedNote?.pinned ? "text-amber-600" : "text-amber-400"
                     }`}
                   />
                   <Trash
                     size={18}
-                    className="cursor-pointer"
+                    className="cursor-pointer text-amber-700 hover:text-rose-600 transition"
                     onClick={() => setItemToDelete(selectedNote.id)}
                   />
                 </div>
@@ -235,9 +234,10 @@ export function Notes() {
               <textarea
                 value={selectedNote.content}
                 onChange={(e) => handleEdit(selectedNote.id, e.target.value)}
-                className="flex-1 p-6 bg-transparent text-zinc-300 text-sm resize-none outline-none custom-scrollbar"
+                className="flex-1 p-6 bg-transparent text-amber-950 text-sm resize-none outline-none custom-scrollbar"
               />
             </div>
+            <span className="pointer-events-none absolute bottom-0 right-0 h-0 w-0 border-l-[26px] border-l-transparent border-t-[26px] border-t-amber-200" />
           </div>
         </>
       )}

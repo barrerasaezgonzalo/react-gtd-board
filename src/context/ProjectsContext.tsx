@@ -31,7 +31,7 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from("projects")
+        .from("gtd_projects")
         .select("*")
         .eq("user_id", userId)
         .eq("is_active", true)
@@ -59,7 +59,7 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const { data, error } = await supabase
-        .from("projects")
+        .from("gtd_projects")
         .insert({
           user_id: userId,
           name: cleanName,
@@ -78,12 +78,54 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateProject = async (
+    id: string,
+    updates: { name?: string; color?: string },
+  ) => {
+    if (!userId) return;
+
+    const normalizedUpdates: { name?: string; color?: string } = {};
+
+    if (typeof updates.name === "string") {
+      const cleanName = updates.name.trim();
+      if (!cleanName) return;
+      normalizedUpdates.name = cleanName;
+    }
+
+    if (typeof updates.color === "string" && updates.color.trim()) {
+      normalizedUpdates.color = updates.color;
+    }
+
+    if (Object.keys(normalizedUpdates).length === 0) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("gtd_projects")
+        .update(normalizedUpdates)
+        .eq("id", id)
+        .eq("user_id", userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (!data) return;
+
+      setProjects((prev) =>
+        prev.map((project) =>
+          project.id === id ? (data as Project) : project,
+        ),
+      );
+    } catch (err) {
+      console.error("Update project error:", err);
+    }
+  };
+
   const deleteProject = async (id: string) => {
     if (!userId) return;
 
     try {
       const { error } = await supabase
-        .from("projects")
+        .from("gtd_projects")
         .delete()
         .eq("id", id)
         .eq("user_id", userId);
@@ -106,6 +148,7 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
         projects,
         loading,
         addProject,
+        updateProject,
         deleteProject,
         refreshProjects,
       }}

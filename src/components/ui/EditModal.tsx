@@ -1,30 +1,27 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { EditModalProps, ActionParams } from "@/types";
 import { useActions } from "@/context/ActionContext";
 import { useProjects } from "@/context/ProjectsContext";
 import { useAutoResizeTextarea } from "@/hooks/useAutoResizeTextarea";
-import { format } from "date-fns";
+import { toDateTimeLocalValue } from "@/lib/utils";
 
 export function EditModal({ item, onClose, saving }: EditModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [formData, setFormData] = useState<ActionParams>({
     title: item.title,
-    due_date: item.due_date
-      ? format(new Date(item.due_date), "yyyy-MM-dd'T'HH:mm")
-      : "",
+    due_date: item.due_date ? toDateTimeLocalValue(item.due_date) : "",
     status: item.status,
     text: item.text,
     urgent: item.urgent,
     energy: item.energy ?? "medium",
-    context: item.context,
+    context: item.context ?? "home",
     file_urls: item.file_urls ?? "",
     project_id: item.project_id ?? null,
   });
 
   const textareaRef = useAutoResizeTextarea(formData.text);
-  const modalRef = useRef<HTMLDivElement>(null);
   const isFormValid =
     (formData.title ?? "").trim().length > 5 &&
     (formData.status !== "nextActions" ||
@@ -60,6 +57,7 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
     const normalizedData = {
       ...formData,
       file_urls: cleanedUrls.join("\n"),
+      context: formData.context ?? "home",
       due_date:
         formData.due_date && formData.due_date.trim() !== ""
           ? formData.due_date
@@ -79,12 +77,6 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
     setTimeout(onClose, 200);
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      handleClose();
-    }
-  };
-
   useEffect(() => {
     const timer = requestAnimationFrame(() => setIsVisible(true));
     return () => cancelAnimationFrame(timer);
@@ -92,24 +84,22 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
 
   return (
     <div
-      onClick={handleBackdropClick}
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-500 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-slate-900/35 backdrop-blur-sm p-4 transition-opacity duration-500 ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
     >
       <div
-        ref={modalRef}
-        className={`bg-zinc-900 border border-zinc-800 w-full max-w-[500px] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-all duration-200 ${
+        className={`bg-white border border-slate-200 w-full max-w-[500px] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-all duration-200 ${
           isVisible
             ? "opacity-100 scale-100 translate-y-0"
             : "opacity-0 scale-95 translate-y-4"
         }`}
       >
-        <div className="flex items-center justify-between p-6 border-b border-zinc-800">
-          <h3 className="text-zinc-100 font-semibold">Edit Action</h3>
+        <div className="flex items-center justify-between p-6 border-b border-slate-200">
+          <h3 className="text-slate-900 font-semibold">Edit Action</h3>
           <button
             onClick={handleClose}
-            className="text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
+            className="text-slate-400 hover:text-slate-700 transition cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -118,7 +108,7 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
         <div className="px-6 py-2 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
           <div className="flex items-center gap-4">
             <div className="relative w-full">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 pointer-events-none">
                 Title:
               </span>
 
@@ -127,12 +117,12 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
                 value={formData.title}
                 onChange={handleChange}
                 className={`
-                  w-full pl-16 pr-4 py-2 bg-zinc-800/50 border rounded-lg
-                  text-sm text-zinc-200 focus:outline-none transition
+                  w-full pl-16 pr-4 py-2 bg-white border rounded-lg
+                  text-sm text-slate-900 focus:outline-none transition
                   ${
                     !((formData.title ?? "").trim().length > 5)
-                      ? "border-red-700 focus:border-red-500/50"
-                      : "border-zinc-700 focus:border-blue-500/50"
+                      ? "border-rose-400 focus:border-rose-500"
+                      : "border-slate-300 focus:border-sky-400"
                   }
                 `}
               />
@@ -140,7 +130,7 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
           </div>
 
           <div className="relative w-full">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 pointer-events-none">
               Due Date:
             </span>
             <input
@@ -149,35 +139,35 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
               value={formData.due_date ?? ""}
               onChange={handleChange}
               className={`
-                w-full pl-22 pr-4 bg-zinc-800/50 border rounded-lg py-2 text-sm text-zinc-200 focus:outline-none transition [color-scheme:dark]
-                ${isDueDateMissing ? "border-red-700 focus:border-red-500/50" : "border-zinc-700 focus:border-blue-500/50"}
+                w-full pl-22 pr-4 bg-white border rounded-lg py-2 text-sm text-slate-900 focus:outline-none transition [color-scheme:light]
+                ${isDueDateMissing ? "border-rose-400 focus:border-rose-500" : "border-slate-300 focus:border-sky-400"}
                 `}
             />
           </div>
 
           <div className="relative w-full">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 pointer-events-none">
               Status
             </span>
             <select
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="w-full pl-22 pr-4 bg-zinc-800/50 border border-zinc-700 rounded-lg py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition appearance-none cursor-pointer"
+              className="w-full pl-22 pr-4 bg-white border border-slate-300 rounded-lg py-2 text-sm text-slate-900 focus:outline-none focus:border-sky-400 transition appearance-none cursor-pointer"
             >
-              <option className="bg-zinc-800" value="nextActions">
+              <option className="bg-white" value="nextActions">
                 Next Actions
               </option>
-              <option className="bg-zinc-800" value="backLog">
+              <option className="bg-white" value="backLog">
                 BackLog
               </option>
-              <option className="bg-zinc-800" value="waiting">
+              <option className="bg-white" value="waiting">
                 Waiting
               </option>
-              <option className="bg-zinc-800" value="done">
+              <option className="bg-white" value="done">
                 Done
               </option>
-              <option className="bg-zinc-800" value="someday">
+              <option className="bg-white" value="someday">
                 Someday / Maybe
               </option>
             </select>
@@ -185,7 +175,7 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
 
           <div>
             <div>
-              <label className="text-[11px] font-bold uppercase tracking-tight text-zinc-500 block mb-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-tight text-slate-500 block mb-1.5">
                 Past URL Files // One URL per line
               </label>
 
@@ -197,88 +187,88 @@ export function EditModal({ item, onClose, saving }: EditModalProps) {
 https://example.com/file2.png
 `}
                 rows={4}
-                className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition resize-none"
+                className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-sky-400 transition resize-none"
               />
             </div>
           </div>
 
           <div className="relative w-full">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 pointer-events-none">
               Priority
             </span>
             <select
               name="urgent"
               value={String(formData.urgent)}
               onChange={handleChange}
-              className="w-full pl-22 bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition appearance-none cursor-pointer"
+              className="w-full pl-22 bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-sky-400 transition appearance-none cursor-pointer"
             >
-              <option className="bg-zinc-800" value="false">
+              <option className="bg-white" value="false">
                 Normal
               </option>
-              <option className="bg-zinc-800" value="true">
+              <option className="bg-white" value="true">
                 Urgent
               </option>
             </select>
           </div>
 
           <div className="relative w-full">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 pointer-events-none">
               Energy
             </span>
             <select
               name="energy"
               value={formData.energy ?? "medium"}
               onChange={handleChange}
-              className="w-full pl-22 bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition appearance-none cursor-pointer"
+              className="w-full pl-22 bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-sky-400 transition appearance-none cursor-pointer"
             >
-              <option className="bg-zinc-800" value="low">
-                Low
+              <option className="bg-white" value="high">
+                High
               </option>
-              <option className="bg-zinc-800" value="medium">
+              <option className="bg-white" value="medium">
                 Medium
               </option>
-              <option className="bg-zinc-800" value="high">
-                High
+              <option className="bg-white" value="low">
+                Low
               </option>
             </select>
           </div>
 
           <div className="relative w-full">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 pointer-events-none">
               Context
             </span>
             <select
               name="context"
               value={formData.context}
               onChange={handleChange}
-              className="w-full pl-22 bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition appearance-none cursor-pointer"
+              className="w-full pl-22 bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-sky-400 transition appearance-none cursor-pointer"
             >
-              <option className="bg-zinc-800" value="home">
+              <option className="bg-white" value="home">
                 Home
               </option>
-              <option className="bg-zinc-800" value="work">
+              <option className="bg-white" value="work">
                 Work
               </option>
             </select>
           </div>
 
           <div className="relative w-full">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 pointer-events-none">
               Project
             </span>
             <select
               name="project_id"
               value={formData.project_id ?? ""}
               onChange={handleChange}
-              className="w-full pl-22 bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition appearance-none cursor-pointer"
+              className="w-full pl-22 bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-sky-400 transition appearance-none cursor-pointer"
             >
-              <option className="bg-zinc-800" value="">
+              <option className="bg-white" value="">
                 No project
               </option>
               {projects.map((project) => (
                 <option
                   key={project.id}
-                  className="bg-zinc-800"
+                  className="bg-white"
                   value={project.id}
                 >
                   {project.name}
@@ -288,7 +278,7 @@ https://example.com/file2.png
           </div>
 
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-tight text-zinc-500 block mb-1.5">
+            <label className="text-[11px] font-bold uppercase tracking-tight text-slate-500 block mb-1.5">
               Description
             </label>
             <textarea
@@ -297,15 +287,15 @@ https://example.com/file2.png
               value={formData.text || ""}
               onChange={handleChange}
               rows={4}
-              className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition resize-none overflow-hidden"
+              className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-sky-400 transition resize-none overflow-hidden"
             />
           </div>
         </div>
 
-        <div className="p-6 bg-zinc-800/20 flex justify-end gap-3 border-t border-zinc-800 shrink-0">
+        <div className="p-6 bg-slate-50/90 flex justify-end gap-3 border-t border-slate-200 shrink-0">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+            className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 transition cursor-pointer"
           >
             Cancel
           </button>
@@ -315,8 +305,8 @@ https://example.com/file2.png
             onClick={handleSave}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition cursor-pointer ${
               isFormValid
-                ? "border border-2 border-blue-600 hover:bg-blue-900 text-white"
-                : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                ? "border border-2 border-sky-500 hover:bg-sky-100 text-sky-700"
+                : "bg-slate-100 text-slate-400 cursor-not-allowed"
             }`}
           >
             {saving ? "Working..." : "Save Changes"}

@@ -1,9 +1,6 @@
 "use client";
 import Image from "next/image";
-
-interface AuthGateProps {
-  onLogin: () => Promise<void> | void;
-}
+import type { AuthGateProps } from "@/types";
 
 export function AuthGate({ onLogin }: AuthGateProps) {
   return (

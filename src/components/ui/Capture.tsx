@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, CheckCircle2 } from "lucide-react";
+import { Plus, CheckCircle2, X } from "lucide-react";
 import { useActions } from "@/context/ActionContext";
 
 export function Capture() {
@@ -17,13 +17,12 @@ export function Capture() {
     }
   }, [showSuccess]);
 
-  const handleCapture = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleCapture = async () => {
+    if (!isValid) return;
     setShowSuccess(false);
-    if (e.key === "Enter" && isValid) {
-      await addCapture(value);
-      setValue("");
-      setShowSuccess(true);
-    }
+    await addCapture(value);
+    setValue("");
+    setShowSuccess(true);
   };
 
   return (
@@ -32,18 +31,44 @@ export function Capture() {
         <Plus
           size={18}
           className={`transition-colors ${
-            isValid ? "text-blue-400" : "text-zinc-500"
+            isValid ? "text-sky-500" : "text-slate-400"
           }`}
         />
       </div>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={handleCapture}
-        placeholder="Capture something on your mind..."
-        className="w-full bg-zinc-900/60 border border-zinc-800 rounded py-5 pl-12 pr-4 outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/10 transition-all placeholder:text-zinc-600 text-lg shadow-2xl"
-      />
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          await handleCapture();
+        }}
+      >
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Capture something on your mind..."
+          className="w-full bg-white/85 border border-slate-200 rounded py-4 sm:py-5 pl-12 pr-24 sm:pr-26 outline-none focus:border-sky-400/70 focus:ring-1 focus:ring-sky-200 transition-all placeholder:text-slate-400 text-base sm:text-lg text-slate-900 shadow-lg"
+        />
+        <div className="absolute inset-y-0 right-2 sm:right-3 flex items-center gap-1 sm:gap-2">
+          {value.trim().length > 0 && (
+            <button
+              type="button"
+              onClick={() => setValue("")}
+              className="cursor-pointer inline-flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-md border border-slate-200 bg-white/80 text-slate-500 hover:text-slate-700 hover:border-slate-300 transition"
+              title="Limpiar texto"
+            >
+              <X size={13} />
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={!isValid}
+            className="cursor-pointer inline-flex h-7 sm:h-8 items-center justify-center rounded-md border border-sky-200 bg-white/90 px-2 sm:px-2.5 text-[11px] sm:text-xs font-semibold text-sky-700 hover:border-sky-400 hover:bg-sky-50 transition disabled:cursor-not-allowed disabled:opacity-50"
+            title="Guardar captura"
+          >
+            Save
+          </button>
+        </div>
+      </form>
 
       {value.length > 0 && !isValid && (
         <span className="absolute -bottom-6 left-2 text-[10px] text-red-500 font-medium uppercase tracking-wider">

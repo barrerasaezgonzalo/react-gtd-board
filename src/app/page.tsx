@@ -14,8 +14,6 @@ import { Calendar } from "@/components/Calendar/Calendar";
 import { Notes } from "@/components/Notes/Notes";
 import { Kanban } from "@/components/Kanban/Kanban";
 import { Projects } from "@/components/Projects/Projects";
-import { WeeklyReview } from "@/components/WeeklyReview/WeeklyReview";
-import { SystemHealth } from "@/components/SystemHealth/SystemHealth";
 import { ActiveView } from "@/types";
 import { ChevronUpCircle } from "lucide-react";
 
@@ -29,8 +27,10 @@ export default function Home() {
 
   useEffect(() => {
     const handleWindowScroll = () => {
-      setShowScrollTop(window.scrollY > 120);
+      const mainScroll = mainRef.current?.scrollTop ?? 0;
+      setShowScrollTop(window.scrollY > 120 || mainScroll > 120);
     };
+
     window.addEventListener("scroll", handleWindowScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleWindowScroll);
   }, []);
@@ -39,7 +39,7 @@ export default function Home() {
   if (!user) return <AuthGate onLogin={login} />;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex font-sans relative">
+    <div className="min-h-screen text-slate-900 flex font-sans relative">
       <div className="hidden md:block">
         <Sidebar setActiveView={setActiveView} activeView={activeView} />
       </div>
@@ -47,14 +47,14 @@ export default function Home() {
       {sidebarOpen && (
         <>
           <div
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            className="fixed inset-0 bg-slate-900/35 z-40 md:hidden"
             onClick={() => setSidebarOpen(false)}
           />
 
-          <div className="fixed inset-y-0 left-0 w-80 z-50 md:hidden bg-zinc-900">
+          <div className="fixed inset-y-0 left-0 w-80 z-50 md:hidden bg-white/95 backdrop-blur-md">
             <button
               onClick={() => setSidebarOpen(false)}
-              className="absolute top-2 right-2 cursor-pointer text-zinc-400 hover:text-white transition"
+              className="absolute top-2 right-2 cursor-pointer text-slate-500 hover:text-slate-700 transition"
             >
               X
             </button>
@@ -73,13 +73,30 @@ export default function Home() {
       <div className="flex-1 flex flex-col">
         <Header
           openSidebar={() => setSidebarOpen(true)}
-          onOpenWeeklyReview={() => setActiveView("weeklyReview")}
           onOpenCalendar={() => setActiveView("calendar")}
           onOpenKanban={() => setActiveView("kanban")}
-          onOpenSystemHealth={() => setActiveView("systemHealth")}
           onNavigateToView={setActiveView}
           onSearchSubmit={setSearchQuery}
+          searchQuery={searchQuery}
         />
+        {searchQuery.trim().length > 0 && (
+          <div className="border-b border-sky-200 bg-sky-50/80 px-4 py-2 md:px-8">
+            <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-3">
+              <p className="text-xs text-sky-800">
+                Showing results for{" "}
+                <span className="font-semibold">
+                  &quot;{searchQuery.trim()}&quot;
+                </span>
+              </p>
+              <button
+                onClick={() => setSearchQuery("")}
+                className="cursor-pointer rounded-lg border border-sky-300 bg-white px-2.5 py-1 text-xs font-medium text-sky-700 hover:border-sky-400 hover:bg-sky-100 transition"
+              >
+                Clean search
+              </button>
+            </div>
+          </div>
+        )}
 
         <main
           ref={mainRef}
@@ -97,13 +114,9 @@ export default function Home() {
           {activeView === "done" && <Done searchQuery={searchQuery} />}
           {activeView === "someday" && <Someday searchQuery={searchQuery} />}
           {activeView === "calendar" && <Calendar searchQuery={searchQuery} />}
-          {activeView === "notes" && <Notes />}
+          {activeView === "notes" && <Notes searchQuery={searchQuery} />}
           {activeView === "kanban" && <Kanban searchQuery={searchQuery} />}
-          {activeView === "projects" && <Projects />}
-          {activeView === "weeklyReview" && <WeeklyReview />}
-          {activeView === "systemHealth" && (
-            <SystemHealth onNavigate={setActiveView} />
-          )}
+          {activeView === "projects" && <Projects searchQuery={searchQuery} />}
         </main>
 
         {showScrollTop && (
@@ -112,7 +125,7 @@ export default function Home() {
               mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className="fixed right-4 md:right-6 bottom-4 md:bottom-6 z-40 rounded-full border border-cyan-700/70 bg-zinc-900/90 p-1.5 text-cyan-300 shadow-lg hover:bg-cyan-950/40 hover:border-cyan-500 transition"
+            className="cursor-pointer fixed right-4 md:right-6 bottom-4 md:bottom-6 z-40 rounded-full border border-sky-300 bg-white/95 p-1.5 text-sky-500 shadow-lg hover:bg-sky-50 hover:border-sky-400 transition"
             title="Subir"
           >
             <ChevronUpCircle size={30} />
