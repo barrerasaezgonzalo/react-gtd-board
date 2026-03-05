@@ -5,13 +5,13 @@ import { EditModalProps, ActionParams } from "@/types";
 import { useActions } from "@/context/ActionContext";
 import { useProjects } from "@/context/ProjectsContext";
 import { useAutoResizeTextarea } from "@/hooks/useAutoResizeTextarea";
-import { toDateTimeLocalValue } from "@/lib/utils";
+import { toDateTimeLocalInput } from "@/lib/datetime";
 
 export function EditModal({ item, onClose, saving }: EditModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [formData, setFormData] = useState<ActionParams>({
     title: item.title,
-    due_date: item.due_date ? toDateTimeLocalValue(item.due_date) : "",
+    due_date: item.due_date ? toDateTimeLocalInput(item.due_date) : "",
     status: item.status,
     text: item.text,
     urgent: item.urgent,

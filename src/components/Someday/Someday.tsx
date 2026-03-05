@@ -3,7 +3,8 @@
 import { Archive } from "lucide-react";
 import { useActions } from "@/context/ActionContext";
 import { useActionsByStatus } from "@/hooks/useFilteredActions";
-import { actionMatchesQuery, formatDate, getDaysRemaining } from "@/lib/utils";
+import { formatDueDate, daysRemaining } from "@/lib/datetime";
+import { actionMatchesQuery } from "@/lib/utils";
 import { ActionListView } from "../ui/ActionListView";
 
 export function Someday({ searchQuery = "" }: { searchQuery?: string }) {
@@ -33,9 +34,9 @@ export function Someday({ searchQuery = "" }: { searchQuery?: string }) {
           title: action.title,
           onEdit: () => openEdit(),
           onRemove: openDelete,
-          date: formatDate(action.created_at ?? ""),
-          dueDate: `${formatDate(action.due_date ?? "")}`,
-          remainingDays: getDaysRemaining(action.due_date ?? ""),
+          date: formatDueDate(action.created_at ?? ""),
+          dueDate: `${formatDueDate(action.due_date ?? "")}`,
+          remainingDays: daysRemaining(action.due_date ?? ""),
           text: action.text,
         })}
       />

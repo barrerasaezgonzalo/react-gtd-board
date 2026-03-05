@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { Action, ActionStatus, Context, EnergyFilter } from "../types";
-import { sortActions } from "../lib/utils";
+import { sortActions } from "../lib/utils.ts";
 
 export function filterByStatus(actions: Action[], status: ActionStatus) {
   return actions.filter((action) => action.status === status);

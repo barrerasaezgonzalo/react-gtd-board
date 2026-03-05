@@ -10,6 +10,11 @@ import React, {
 import { supabase } from "@/lib/supabase";
 import { Note, NotesContextType } from "@/types";
 import { useAuth } from "./AuthContext";
+import {
+  applyDeleteNote,
+  applyEditNoteContent,
+  applyTogglePinned,
+} from "./notesContext.helpers";
 
 export const NotesContext = createContext<NotesContextType | undefined>(
   undefined,
@@ -79,7 +84,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
   async function editNote(id: string, content: string) {
     const previous = notes;
 
-    setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, content } : n)));
+    setNotes((prev) => applyEditNoteContent(prev, id, content));
 
     const { error } = await supabase
       .from("gtd_notes")
@@ -98,10 +103,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     if (!note) return;
 
     const nextPinned = !note.pinned;
-
-    setNotes((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, pinned: nextPinned } : n)),
-    );
+    setNotes((prev) => applyTogglePinned(prev, id).notes);
 
     const { error } = await supabase
       .from("gtd_notes")
@@ -121,7 +123,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
   async function deleteNote(id: string) {
     const previous = notes;
 
-    setNotes((prev) => prev.filter((n) => n.id !== id));
+    setNotes((prev) => applyDeleteNote(prev, id));
 
     const { error } = await supabase
       .from("gtd_notes")

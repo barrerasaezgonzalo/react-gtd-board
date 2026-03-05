@@ -10,6 +10,10 @@ import {
 import { supabase } from "@/lib/supabase";
 import { ProjectsContextType, Project } from "@/types";
 import { useAuth } from "./AuthContext";
+import {
+  normalizeProjectName,
+  normalizeProjectUpdates,
+} from "./projectsContext.helpers";
 
 const ProjectsContext = createContext<ProjectsContextType | undefined>(
   undefined,
@@ -54,7 +58,7 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
     color?: string;
   }) => {
     if (!userId) return;
-    const cleanName = name.trim();
+    const cleanName = normalizeProjectName(name);
     if (!cleanName) return;
 
     try {
@@ -84,19 +88,8 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
   ) => {
     if (!userId) return;
 
-    const normalizedUpdates: { name?: string; color?: string } = {};
-
-    if (typeof updates.name === "string") {
-      const cleanName = updates.name.trim();
-      if (!cleanName) return;
-      normalizedUpdates.name = cleanName;
-    }
-
-    if (typeof updates.color === "string" && updates.color.trim()) {
-      normalizedUpdates.color = updates.color;
-    }
-
-    if (Object.keys(normalizedUpdates).length === 0) return;
+    const normalizedUpdates = normalizeProjectUpdates(updates);
+    if (!normalizedUpdates) return;
 
     try {
       const { data, error } = await supabase

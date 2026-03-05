@@ -2,12 +2,14 @@
   "name": "react-gtd",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test --experimental-strip-types src/**/*.test.ts"
+    "test": "node --test --experimental-strip-types --experimental-specifier-resolution=node src/**/*.test.ts",
+    "test:coverage": "node --test --experimental-strip-types --experimental-specifier-resolution=node --experimental-test-coverage src/**/*.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",

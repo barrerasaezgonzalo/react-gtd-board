@@ -5,11 +5,10 @@ import { KanbanSquare } from "lucide-react";
 import { useActions } from "@/context/ActionContext";
 import { ActionStatus } from "@/types";
 import {
-  actionMatchesQuery,
-  formatDate,
-  getDaysRemaining,
-  sortActions,
-} from "@/lib/utils";
+  daysRemaining,
+  formatDueDate,
+} from "@/lib/datetime";
+import { actionMatchesQuery, sortActions } from "@/lib/utils";
 import { Capture } from "../ui/Capture";
 import { Loading } from "../ui/Loading";
 
@@ -197,7 +196,7 @@ export function Kanban({ searchQuery = "" }: { searchQuery?: string }) {
 
                 {list.map((action) => {
                   const remainingDays = action.due_date
-                    ? getDaysRemaining(action.due_date)
+                    ? daysRemaining(action.due_date)
                     : null;
 
                   return (
@@ -215,8 +214,8 @@ export function Kanban({ searchQuery = "" }: { searchQuery?: string }) {
                       </p>
                       {action.due_date && remainingDays !== null && (
                         <div className="mt-2 text-[11px]">
-                          <p className="text-slate-500">
-                            Due: {formatDate(action.due_date)}
+                            <p className="text-slate-500">
+                            Due: {formatDueDate(action.due_date)}
                           </p>
                           <p
                             className={

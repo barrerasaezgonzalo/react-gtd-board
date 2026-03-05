@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Rocket } from "lucide-react";
 import { useActions } from "@/context/ActionContext";
-import { actionMatchesQuery, formatDate, getDaysRemaining } from "@/lib/utils";
+import { formatDueDate, daysRemaining } from "@/lib/datetime";
+import { actionMatchesQuery } from "@/lib/utils";
 import { Context, EnergyFilter } from "@/types";
 import { useNextActionsByContext } from "@/hooks/useFilteredActions";
 import { ActionListView } from "../ui/ActionListView";
@@ -54,9 +55,9 @@ export function NextActions({ searchQuery = "" }: { searchQuery?: string }) {
           title: action.title,
           onEdit: () => openEdit(),
           onRemove: openDelete,
-          date: formatDate(action.created_at ?? ""),
-          remainingDays: getDaysRemaining(action.due_date ?? ""),
-          dueDate: `${formatDate(action.due_date ?? "")}`,
+          date: formatDueDate(action.created_at ?? ""),
+          remainingDays: daysRemaining(action.due_date ?? ""),
+          dueDate: `${formatDueDate(action.due_date ?? "")}`,
           text: action.text,
           cta: "Mark as Done",
           ctaAction: () => setItemToComplete(action.id),

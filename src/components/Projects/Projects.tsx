@@ -5,7 +5,8 @@ import { Check, FolderKanban, Plus, SquarePen, Trash2 } from "lucide-react";
 import { useActions } from "@/context/ActionContext";
 import { useProjects } from "@/context/ProjectsContext";
 import { ActionStatus } from "@/types";
-import { actionMatchesQuery, formatDate, getDaysRemaining } from "@/lib/utils";
+import { daysRemaining, formatDueDate } from "@/lib/datetime";
+import { actionMatchesQuery } from "@/lib/utils";
 import { Capture } from "../ui/Capture";
 import { Loading } from "../ui/Loading";
 import { ConfirmModal } from "../ui/ConfirmModal";
@@ -270,7 +271,7 @@ export function Projects({ searchQuery = "" }: { searchQuery?: string }) {
           <div className="space-y-2">
             {selectedProjectActions.slice(0, 12).map((action) => {
               const remainingDays = action.due_date
-                ? getDaysRemaining(action.due_date)
+                ? daysRemaining(action.due_date)
                 : null;
 
               return (
@@ -285,7 +286,7 @@ export function Projects({ searchQuery = "" }: { searchQuery?: string }) {
                   {action.due_date && remainingDays !== null && (
                     <div className="mt-1 text-[11px]">
                       <p className="text-slate-500">
-                        Due: {formatDate(action.due_date)}
+                        Due: {formatDueDate(action.due_date)}
                       </p>
                       <p
                         className={

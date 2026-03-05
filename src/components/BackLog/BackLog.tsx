@@ -2,7 +2,8 @@
 
 import { Logs } from "lucide-react";
 import { useActions } from "@/context/ActionContext";
-import { actionMatchesQuery, formatDate, getDaysRemaining } from "@/lib/utils";
+import { formatDueDate, daysRemaining } from "@/lib/datetime";
+import { actionMatchesQuery } from "@/lib/utils";
 import { useActionsByStatus } from "@/hooks/useFilteredActions";
 import { ActionListView } from "../ui/ActionListView";
 
@@ -29,9 +30,9 @@ export function BackLog({ searchQuery = "" }: { searchQuery?: string }) {
           title: action.title,
           onEdit: () => openEdit(),
           onRemove: openDelete,
-          date: formatDate(action.created_at ?? ""),
-          remainingDays: getDaysRemaining(action.due_date ?? ""),
-          dueDate: `${formatDate(action.due_date ?? "")}`,
+          date: formatDueDate(action.created_at ?? ""),
+          remainingDays: daysRemaining(action.due_date ?? ""),
+          dueDate: `${formatDueDate(action.due_date ?? "")}`,
           cta: "Make Action",
           ctaAction: () => openEdit({ ...action, status: "nextActions" }),
           text: action.text,

@@ -11,10 +11,13 @@ import { es } from "date-fns/locale";
 import { Action } from "@/types";
 import { useActions } from "@/context/ActionContext";
 import {
+  compareDueDatesAsc,
+  daysRemaining,
+  formatDueDate,
+  toDateKey,
+} from "@/lib/datetime";
+import {
   actionMatchesQuery,
-  formatDate,
-  getDateKeyFromTimestamp,
-  getDaysRemaining,
 } from "@/lib/utils";
 import { Loading } from "../ui/Loading";
 import { Capture } from "../ui/Capture";
@@ -39,7 +42,7 @@ export function Calendar({ searchQuery = "" }: { searchQuery?: string }) {
     nextActions.forEach((task) => {
       if (!task.due_date) return;
 
-      const key = getDateKeyFromTimestamp(task.due_date);
+      const key = toDateKey(task.due_date);
 
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(task);
@@ -48,7 +51,7 @@ export function Calendar({ searchQuery = "" }: { searchQuery?: string }) {
     map.forEach((tasks) => {
       tasks.sort(
         (a, b) =>
-          new Date(a.due_date!).getTime() - new Date(b.due_date!).getTime(),
+          compareDueDatesAsc(a.due_date, b.due_date),
       );
     });
 
@@ -123,7 +126,7 @@ export function Calendar({ searchQuery = "" }: { searchQuery?: string }) {
 
                 <div className="space-y-2.5">
                   {tasks.map((task) => {
-                    const remainingDays = getDaysRemaining(
+                    const remainingDays = daysRemaining(
                       task?.due_date ?? "",
                     );
                     const isOverdue = remainingDays < 0;
@@ -161,7 +164,7 @@ export function Calendar({ searchQuery = "" }: { searchQuery?: string }) {
                                     : "text-slate-700"
                               }
                             >
-                              {formatDate(task.due_date!)}
+                              {formatDueDate(task.due_date!)}
                             </span>
                           </div>
                           <span

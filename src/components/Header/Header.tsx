@@ -12,7 +12,7 @@ import { useEffect, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
-import { getDaysRemaining } from "@/lib/utils";
+import { daysRemaining } from "@/lib/datetime";
 
 export function Header({
   openSidebar,
@@ -43,7 +43,7 @@ export function Header({
         (action) =>
           action.status !== "done" &&
           !!action.due_date &&
-          getDaysRemaining(action.due_date) < 0,
+          daysRemaining(action.due_date) < 0,
       ).length,
     [actions],
   );

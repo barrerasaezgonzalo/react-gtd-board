@@ -10,6 +10,11 @@ import React, {
 import { supabase } from "@/lib/supabase";
 import { ActionContextType, Action, UpdateActionParams } from "@/types";
 import { useAuth } from "./AuthContext";
+import {
+  buildCaptureInsertPayload,
+  normalizeFetchedActions,
+  shouldBlockMoveToNextActions,
+} from "./actionContext.helpers";
 
 const ActionContext = createContext<ActionContextType | undefined>(undefined);
 
@@ -40,10 +45,7 @@ export function ActionProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
 
-      const normalizedActions = (data ?? []).map((action) => ({
-        ...action,
-        context: action.context ?? "home",
-      }));
+      const normalizedActions = normalizeFetchedActions((data ?? []) as Action[]);
 
       setActions(normalizedActions);
     } catch (err) {
@@ -60,13 +62,7 @@ export function ActionProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase
         .from("gtd_actions")
         .insert([
-          {
-            title: capture.trim(),
-            status: "backLog",
-            context: "home",
-            urgent: false,
-            user_id: userId,
-          },
+          buildCaptureInsertPayload(capture, userId as string),
         ])
         .select()
         .single();
@@ -82,15 +78,8 @@ export function ActionProvider({ children }: { children: React.ReactNode }) {
   const updateAction = async ({ id, updates }: UpdateActionParams) => {
     if (!user) return;
     const currentAction = actions.find((action) => action.id === id);
-    const targetStatus = updates.status ?? currentAction?.status;
-    const effectiveDueDate =
-      updates.due_date ?? currentAction?.due_date ?? null;
-    const hasDueDate =
-      typeof effectiveDueDate === "string"
-        ? effectiveDueDate.trim().length > 0
-        : !!effectiveDueDate;
 
-    if (targetStatus === "nextActions" && !hasDueDate) {
+    if (shouldBlockMoveToNextActions({ updates, currentAction })) {
       console.warn(
         "Blocked update: due_date is required to move an action to nextActions.",
       );

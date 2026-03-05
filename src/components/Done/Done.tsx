@@ -2,7 +2,8 @@
 
 import { CheckCheck } from "lucide-react";
 import { useActions } from "@/context/ActionContext";
-import { actionMatchesQuery, formatDate } from "@/lib/utils";
+import { formatDueDate } from "@/lib/datetime";
+import { actionMatchesQuery } from "@/lib/utils";
 import { useActionsByStatus } from "@/hooks/useFilteredActions";
 import { ActionListView } from "../ui/ActionListView";
 
@@ -27,7 +28,7 @@ export function Done({ searchQuery = "" }: { searchQuery?: string }) {
           title: action.title,
           onEdit: () => openEdit(),
           onRemove: openDelete,
-          date: formatDate(action.created_at ?? ""),
+          date: formatDueDate(action.created_at ?? ""),
           text: action.text,
         })}
       />
