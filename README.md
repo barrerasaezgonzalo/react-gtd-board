@@ -202,6 +202,16 @@ Opciones compatibles:
 
 - URL: `https://github.com/barrerasaezgonzalo/react-gtd-board`
 - Branch principal sugerida: `main`
+- Prueba la aplicación directamente en [React GTD([https://react-prompt-improver.vercel.app](https://react-gtd-board.vercel.app/)/).
+
+## 📸 Capturas de pantalla
+
+<img width="1891" height="867" alt="Captura de pantalla 2026-03-08 012502" src="https://github.com/user-attachments/assets/b9def530-6cd5-4193-a6ee-ad82bf9cdd4a" />
+<img width="1854" height="893" alt="Captura de pantalla 2026-03-08 012453" src="https://github.com/user-attachments/assets/bd7a57b5-9ea2-489b-83e5-7337f75ef732" />
+<img width="1898" height="877" alt="Captura de pantalla 2026-03-08 012438" src="https://github.com/user-attachments/assets/4d9ec7b3-d63c-4356-ab28-4af68d2a7400" />
+<img width="1903" height="905" alt="Captura de pantalla 2026-03-08 012342" src="https://github.com/user-attachments/assets/19ebc6f2-d060-4b7e-91e4-d13202ebb801" />
+<img width="1871" height="894" alt="Captura de pantalla 2026-03-08 012244" src="https://github.com/user-attachments/assets/b47e82e3-2370-43b0-b7bf-df454ae440f0" />
+
 
 ## Licencia
 
